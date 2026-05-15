@@ -9,6 +9,12 @@ import {
 import "leaflet/dist/leaflet.css";
 import type { LatLngExpression, LeafletMouseEvent } from "leaflet";
 import AuthLayout from "@/Layouts/AuthLayout";
+import { PageProps } from "@/types";
+
+type User = {
+    id: number;
+    name: string;
+};
 
 /* ─── Types ─── */
 type Report = {
@@ -24,9 +30,12 @@ type Report = {
     nama_mitra: string;
 };
 
-type Props = {
+
+
+interface Props extends PageProps {
     reports: Report[];
-};
+    mitraUsers: User[];
+}
 
 type FormState = {
     tanggal: string;
@@ -34,7 +43,7 @@ type FormState = {
     status_laporan: string;
     tipe_tiang: string;
     lokasi: string;
-    petugas_mitra: string;
+    petugas_mitra: number | "";
     latitude: number | "";
     longitude: number | "";
     nama_mitra: string;
@@ -47,7 +56,11 @@ const statusConfig: Record<string, { label: string; color: string; dot: string }
 };
 
 /* ─── Component ─── */
-export default function Reports({ reports = [] }: Props) {
+export default function Reports({
+    auth,
+    reports = [],
+    mitraUsers = []
+}: Props) {
     const [form, setForm] = useState<FormState>({
         tanggal: "",
         deskripsi: "",
@@ -111,7 +124,7 @@ export default function Reports({ reports = [] }: Props) {
 
     function deleteReport(id: number) {
         if (confirm("Hapus laporan ini?")) {
-            router.delete(`/laporan/${id}`);
+            router.delete(`/laporan/${id}`);    
         }
     }
 
@@ -159,7 +172,7 @@ function getCurrentLocation() {
 }
 
 return (
-    <AuthLayout>
+    <AuthLayout user={auth.user}>
         <div className="min-h-screen bg-gray-100 p-6">
             <div className="max-w-7xl mx-auto">
                 {/* GRID */}
@@ -239,22 +252,29 @@ return (
                                     />
                                 </div>
 
-                                <div>
+                              <div>
                                     <label className="text-sm font-medium text-gray-700">
                                         Petugas Mitra
                                     </label>
 
-                                    <input
+                                    <select
                                         value={form.petugas_mitra}
                                         onChange={(e) =>
                                             setForm({
                                                 ...form,
-                                                petugas_mitra: e.target.value,
+                                                petugas_mitra: Number(e.target.value),
                                             })
                                         }
-                                        placeholder="Nama petugas"
-                                        className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
-                                    />
+                                        className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3"
+                                    >
+                                        <option value="">Pilih Petugas Mitra</option>
+
+                                        {mitraUsers.map((user) => (
+                                            <option key={user.id} value={user.id}>
+                                                {user.name}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
 
@@ -283,18 +303,21 @@ return (
                                     <label className="text-sm font-medium text-gray-700">
                                         Tipe Tiang
                                     </label>
-
-                                    <input
+                                    <select
                                         value={form.tipe_tiang}
                                         onChange={(e) =>
                                             setForm({
                                                 ...form,
-                                                tipe_tiang: e.target.value,
+                                                tipe_tiang: e.target.value
                                             })
                                         }
-                                        placeholder="Beton / Besi"
                                         className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
-                                    />
+                                    >
+                                        <option value="">Pilih Tiang</option>
+                                        <option value="Beton">Beton</option>
+                                        <option value="Besi">Besi</option>
+                                       
+                                    </select>
                                 </div>
                             </div>
 
@@ -343,7 +366,7 @@ return (
                             >
                                 {gettingLocation
                                     ? "Loading..."
-                                    : "📍 Lokasi Saya"}
+                                    : "Lokasi Saya"}
                             </button>
                         </div>
 

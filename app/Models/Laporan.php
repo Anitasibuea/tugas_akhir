@@ -17,6 +17,7 @@ class Laporan extends Model
 
     // Kolom yang boleh diisi
     protected $fillable = [
+        'id',
         'tanggal',
         'deskripsi',
         'status_laporan',

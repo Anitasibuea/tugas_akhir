@@ -5,44 +5,85 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Laporan;
 use  Inertia\Inertia;
+use App\Models\User;
 
 class ReportController extends Controller
 {
+    public function index()
+    {
+        return Inertia::render("Report/ReportPage", [
+            "report" => Laporan::latest()->get(),
+        ]
+        );
+    }
     /**
      * Menampilkan semua data laporan
      */
-    public function index()
-    {
-        return Inertia::render("Report/Addreport", [
-            "report" => Laporan::latest()->get(),
-        ]);
-    
-    }
+    public function index2()
+        {
+            return Inertia::render("Report/Addreport", [
+                // ONLY USERS WITH ROLE MITRA
+                'mitraUsers' => User::role('mitra')
+                    ->select('id', 'name')
+                    ->get(),
+            ]);
+        }
 
     /**
      * Menyimpan data laporan baru
      */
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'tanggal' => 'required|date',
-            'deskripsi' => 'required',
-            'status_laporan' => 'required',
-            'tipe_tiang' => 'required',
-            'lokasi' => 'required',
-            'petugas_mitra' => 'required',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'nama_mitra' => 'required'
-        ]);
+{
+    $validated = $request->validate([
+        'tanggal' => 'required|date',
+        'deskripsi' => 'required',
+        'status_laporan' => 'required',
+        'tipe_tiang' => 'required',
+        'lokasi' => 'required',
+        'petugas_mitra' => 'required|exists:users,id',
+        'latitude' => 'required|numeric',
+        'longitude' => 'required|numeric',
+        'nama_mitra' => 'required'
+    ]);
 
-        Laporan::create($validated);
+    /* GET CURRENT YEAR */
+    $year = date('Y');
 
-        return redirect()->back()->with(
-            'success',
-            'Data laporan berhasil ditambahkan'
-        );
+    /* GET LAST REPORT THIS YEAR */
+    $lastReport = Laporan::where('id', 'like', "PLN-$year-%")
+        ->orderBy('id', 'desc')
+        ->first();
+
+    /* DEFAULT NUMBER */
+    $number = 1;
+
+    /* IF DATA EXISTS */
+    if ($lastReport) {
+
+        /*
+        Example:
+        PLN-2025-089
+        */
+
+        $lastNumber = (int) substr($lastReport->id, -3);
+
+        $number = $lastNumber + 1;
     }
+
+    /* GENERATE NEW ID */
+    $generatedId = 'PLN-' . $year . '-' . str_pad($number, 3, '0', STR_PAD_LEFT);
+
+    /* ADD TO VALIDATED DATA */
+    $validated['id'] = $generatedId;
+
+    /* CREATE REPORT */
+    Laporan::create($validated);
+
+    return redirect()->back()->with(
+        'success',
+        'Data laporan berhasil ditambahkan'
+    );
+}
     /**
      * Menampilkan detail laporan berdasarkan ID
      */
