@@ -37,12 +37,16 @@ export default function AuthenticatedLayout({
             active: route().current("reports.*"),
             icon: ReportIcon,
         },
+    ...(user.role == "admin" || user.role == "manajer"
+    ? [
         {
             label: "Mitra",
             href: route("mitra.index"),
-            active: route().current("mitra.index"),
+            active: route().current("mitra.*"),
             icon: AddIcon,
         },
+      ]
+    : []),
         {
             label: "Peta Lokasi Tiang",
             href: route("peta.lokasi"),

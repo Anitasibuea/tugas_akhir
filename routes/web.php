@@ -39,33 +39,66 @@ Route::get('/dashboard', function () {
 // Route::delete('/reports/{id}', [ReportController::class, 'destroy']);
 // Route::get('/reports/map', [ReportController::class, 'map']);
 
-Route::prefix('reports')
-    ->controller(ReportController::class)
-    ->name('reports.')
+// Route::prefix('reports')
+//     ->controller(ReportController::class)
+//     ->name('reports.')
+//     ->group(function () {
+
+//         Route::get('/', 'index')->name('index');
+
+//         Route::get('/add', 'index2')->name('add');
+
+//         Route::post('/', 'store')->name('store');
+
+//         Route::patch('/','update')->name('update');
+
+//         Route::delete('/{id}', 'destroy')->name('destroy');
+
+//         Route::get('/map', 'map')->name('map');
+
+//     });
+
+Route::middleware(['auth', 'role:admin|petugas'])
+    ->prefix('dashboard')
     ->group(function () {
 
-        Route::get('/', 'index')->name('index');
+        Route::controller(ReportController::class)
+            ->name('reports.')
+            ->group(function () {
 
-        Route::get('/add', 'index2')->name('add');
+                Route::get('/report', 'index')->name('index');
 
-        Route::post('/', 'store')->name('store');
+                Route::get('/report/add', 'index2')->name('add');
 
-        Route::patch('/','update')->name('update');
+                Route::post('/report', 'store')->name('store');
 
-        Route::delete('/{id}', 'destroy')->name('destroy');
+                Route::patch('/report/{id}', 'update')->name('update');
 
-        Route::get('/map', 'map')->name('map');
-
+                Route::delete('/report/{id}', 'destroy')->name('destroy');
+            });
     });
 
-Route::prefix('mitra')
-    ->controller(MitraController::class)
-    ->name('mitra.')
-    ->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::get('/add', 'index2')->name('add');
-        Route::post('/', 'store')->name('store');
-    });
+    Route::middleware(['auth', 'role:admin|manajer'])
+        ->prefix('dashboard')
+        ->group(function(){
+
+        Route::controller(MitraController::class)
+        ->name('mitra.')
+        ->group(function() {
+        Route::get('/mitra', 'index')->name('index');
+        Route::get('/mitra/add', 'index2')->name('add');
+        Route::post('/mitra', 'store')->name('store');
+        });
+        });
+
+// Route::prefix('mitra')
+//     ->controller(MitraController::class)
+//     ->name('mitra.')
+//     ->group(function () {
+//         Route::get('/', 'index')->name('index');
+//         Route::get('/add', 'index2')->name('add');
+//         Route::post('/', 'store')->name('store');
+//     });
 Route::get('/peta-lokasi', [PetaLokasiController::class, 'index'])->name('peta.lokasi');
 
 Route::middleware('auth')->group(function () {

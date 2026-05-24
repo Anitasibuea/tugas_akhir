@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Laporan;
 use  Inertia\Inertia;
 use App\Models\User;
+use App\Models\Mitra;
 
 class ReportController extends Controller
 {
@@ -26,6 +27,8 @@ class ReportController extends Controller
                 'petugasUsers' => User::role('petugas')
                     ->select('id', 'name')
                     ->get(),
+                'mitraUsers' => Mitra::select('id', 'nama_perusahaan')
+    ->get(),
             ]);
         }
 
@@ -43,7 +46,7 @@ class ReportController extends Controller
         'petugas_lapangan' => 'required|exists:users,id',
         'latitude' => 'required|numeric',
         'longitude' => 'required|numeric',
-        'nama_mitra' => 'required'
+        'nama_mitra' => 'required|exists:mitra,id',
     ]);
 
     /* GET CURRENT YEAR */
