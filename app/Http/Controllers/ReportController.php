@@ -23,7 +23,7 @@ class ReportController extends Controller
         {
             return Inertia::render("Report/Addreport", [
                 // ONLY USERS WITH ROLE MITRA
-                'mitraUsers' => User::role('mitra')
+                'petugasUsers' => User::role('petugas')
                     ->select('id', 'name')
                     ->get(),
             ]);
@@ -40,7 +40,7 @@ class ReportController extends Controller
         'status_laporan' => 'required',
         'tipe_tiang' => 'required',
         'lokasi' => 'required',
-        'petugas_mitra' => 'required|exists:users,id',
+        'petugas_lapangan' => 'required|exists:users,id',
         'latitude' => 'required|numeric',
         'longitude' => 'required|numeric',
         'nama_mitra' => 'required'

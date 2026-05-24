@@ -24,7 +24,7 @@ type Report = {
     status_laporan: string;
     tipe_tiang: string;
     lokasi: string;
-    petugas_mitra: string;
+    petugas_lapangan: string;
     latitude: number;
     longitude: number;
     nama_mitra: string;
@@ -34,7 +34,7 @@ type Report = {
 
 interface Props extends PageProps {
     reports: Report[];
-    mitraUsers: User[];
+    petugasUsers: User[];
 }
 
 type FormState = {
@@ -43,7 +43,7 @@ type FormState = {
     status_laporan: string;
     tipe_tiang: string;
     lokasi: string;
-    petugas_mitra: number | "";
+    petugas_lapangan: number | "";
     latitude: number | "";
     longitude: number | "";
     nama_mitra: string;
@@ -59,7 +59,7 @@ const statusConfig: Record<string, { label: string; color: string; dot: string }
 export default function Reports({
     auth,
     reports = [],
-    mitraUsers = []
+    petugasUsers = []
 }: Props) {
     const [form, setForm] = useState<FormState>({
         tanggal: "",
@@ -67,7 +67,7 @@ export default function Reports({
         status_laporan: "",
         tipe_tiang: "",
         lokasi: "",
-        petugas_mitra: "",
+        petugas_lapangan: "",
         latitude: "",
         longitude: "",
         nama_mitra: "",
@@ -112,7 +112,7 @@ export default function Reports({
                     status_laporan: "",
                     tipe_tiang: "",
                     lokasi: "",
-                    petugas_mitra: "",
+                    petugas_lapangan: "",
                     latitude: "",
                     longitude: "",
                     nama_mitra: "",
@@ -254,22 +254,24 @@ return (
 
                               <div>
                                     <label className="text-sm font-medium text-gray-700">
-                                        Petugas Mitra
+                                        Petugas Lapangan
                                     </label>
 
                                     <select
-                                        value={form.petugas_mitra}
+                                        value={form.petugas_lapangan}
                                         onChange={(e) =>
                                             setForm({
                                                 ...form,
-                                                petugas_mitra: Number(e.target.value),
+petugas_lapangan: e.target.value
+    ? Number(e.target.value)
+    : "",
                                             })
                                         }
                                         className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3"
                                     >
-                                        <option value="">Pilih Petugas Mitra</option>
+                                        <option value="">Pilih Petugas Lapangan</option>
 
-                                        {mitraUsers.map((user) => (
+                                        {petugasUsers.map((user) => (
                                             <option key={user.id} value={user.id}>
                                                 {user.name}
                                             </option>
@@ -336,7 +338,7 @@ return (
                                         })
                                     }
                                     rows={5}
-                                    placeholder="Deskripsi kerusakan..."
+                                    placeholder="Deskripsi..."
                                     className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
                                 />
                             </div>

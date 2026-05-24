@@ -8,4 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 class Mitra extends Model
 {
     use HasFactory;
+    protected $table = 'mitra';
+
+    protected $fillable = [
+    'nama_perusahaan',
+    'alamat',
+    'telepon',
+    'email',
+    'petugas_mapping',
+    'status',
+];
 }

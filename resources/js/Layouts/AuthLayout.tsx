@@ -45,8 +45,8 @@ export default function AuthenticatedLayout({
         },
         {
             label: "Peta Lokasi Tiang",
-            href: route("reports.map"),
-            active: route().current("reports.map"),
+            href: route("peta.lokasi"),
+            active: route().current("peta.lokasi"),
             icon: MapIcon,
         },
            ...(user.role.includes("admin")

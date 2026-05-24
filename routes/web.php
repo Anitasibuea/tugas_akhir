@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\MitraController;
+use App\Http\Controllers\PetaLokasiController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -62,8 +63,10 @@ Route::prefix('mitra')
     ->name('mitra.')
     ->group(function () {
         Route::get('/', 'index')->name('index');
+        Route::get('/add', 'index2')->name('add');
+        Route::post('/', 'store')->name('store');
     });
-
+Route::get('/peta-lokasi', [PetaLokasiController::class, 'index'])->name('peta.lokasi');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
