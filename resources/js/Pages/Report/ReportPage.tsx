@@ -2,6 +2,9 @@ import AuthLayout from "@/Layouts/AuthLayout";
 import { PageProps } from "@/types";
 import { Link, router } from "@inertiajs/react";
 import { useMemo, useState } from "react";
+import EditReportModal from "@/Components/editmodal";
+import DetailReportModal from "@/Components/DetailLaporan";
+import { ReportDetail } from "@/types/report";
 
 /* ──────────────────────────────────────────────────────────
    TYPES
@@ -21,10 +24,13 @@ interface Report {
     longitude: number;
     deskripsi: string;
     created_at?: string;
+    updated_at?: string;
 }
 
 interface Props extends PageProps {
     report: Report[];
+    petugasUsers?: Array<{ id: number; name: string }>;
+    mitraUsers?: Array<{ id: number; name: string }>;
 }
 
 /* ──────────────────────────────────────────────────────────
@@ -42,12 +48,10 @@ const STATUS_COLORS: Record<
         badge: "bg-red-50 text-red-600 border border-red-200",
         dot: "bg-red-500",
     },
-
     Pending: {
         badge: "bg-yellow-50 text-yellow-600 border border-yellow-200",
         dot: "bg-yellow-500",
     },
-
     Closed: {
         badge: "bg-emerald-50 text-emerald-600 border border-emerald-200",
         dot: "bg-emerald-500",
@@ -67,11 +71,26 @@ const TIPE_COLORS: Record<string, string> = {
 export default function ReportPage({
     auth,
     report,
+    petugasUsers = [],
+    mitraUsers = [],
 }: Props) {
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
     const [showEntries, setShowEntries] = useState(10);
-
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+    
+    const handleEdit = (reportItem: Report) => {
+        setSelectedReport(reportItem);
+        setIsEditModalOpen(true);
+    };
+    
+    const handleViewDetail = (reportItem: Report) => {
+        setSelectedReport(reportItem);
+        setIsDetailModalOpen(true);
+    };
+    
     const filteredData = useMemo(() => {
         return report.filter((item) =>
             [
@@ -108,6 +127,40 @@ export default function ReportPage({
         });
     };
 
+    // Transform report data to match the format expected by EditReportModal
+    const transformReportForModal = (report: Report) => {
+        return {
+            id: report.id,
+            tanggal: report.tanggal,
+            deskripsi: report.deskripsi || "",
+            status_laporan: report.status_laporan,
+            tipe_tiang: report.tipe_tiang,
+            lokasi: report.lokasi,
+            petugas_lapangan: report.petugas_mitra,
+            latitude: report.latitude || 0,
+            longitude: report.longitude || 0,
+            nama_mitra: report.nama_mitra,
+        };
+    };
+
+    // Transform report data for detail modal
+    const transformReportForDetail = (report: Report): ReportDetail => {
+        return {
+            id: report.id,
+            tanggal: report.tanggal,
+            lokasi: report.lokasi,
+            tipe_tiang: report.tipe_tiang,
+            status_laporan: report.status_laporan,
+            nama_mitra: report.nama_mitra,
+            petugas_mitra: report.petugas_mitra,
+            latitude: report.latitude || 0,
+            longitude: report.longitude || 0,
+            deskripsi: report.deskripsi || "",
+            created_at: report.created_at,
+            updated_at: report.updated_at,
+        };
+    };
+
     return (
         <AuthLayout
             user={auth.user}
@@ -132,7 +185,6 @@ export default function ReportPage({
                         className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition shadow-sm"
                     >
                         <PlusIcon />
-
                         Tambah Laporan
                     </Link>
                 </div>
@@ -223,13 +275,14 @@ export default function ReportPage({
                                     </tr>
                                 ) : (
                                     paginatedData.map((item) => {
-                               const normalizedStatus =
-    item.status_laporan.charAt(0).toUpperCase() +
-    item.status_laporan.slice(1).toLowerCase();
+                                        const normalizedStatus =
+                                            item.status_laporan.charAt(0).toUpperCase() +
+                                            item.status_laporan.slice(1).toLowerCase();
 
-const statusColor =
-    STATUS_COLORS[normalizedStatus as Status] ??
-    STATUS_COLORS.Open;
+                                        const statusColor =
+                                            STATUS_COLORS[normalizedStatus as Status] ??
+                                            STATUS_COLORS.Open;
+                                        
                                         return (
                                             <tr
                                                 key={item.id}
@@ -272,7 +325,6 @@ const statusColor =
                                                         <span
                                                             className={`w-2 h-2 rounded-full ${statusColor.dot}`}
                                                         />
-
                                                         {normalizedStatus}
                                                     </span>
                                                 </td>
@@ -290,31 +342,30 @@ const statusColor =
                                                 {/* ACTION */}
                                                 <td className="px-5 py-4">
                                                     <div className="flex items-center gap-2">
-
-                                                        {/* VIEW */}
-                                                       
+                                                        {/* VIEW BUTTON */}
+                                                        <button
+                                                            onClick={() => handleViewDetail(item)}
+                                                            className="w-8 h-8 rounded-lg border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-50 transition"
+                                                            title="Lihat Detail">
                                                             <ViewIcon />
-                                                     
+                                                        </button>
 
-                                                        {/* EDIT */}
-                                                        <Link
-                                                            href={route(
-                                                                "reports.update",
-                                                                item.id
-                                                            )}
+                                                        {/* EDIT BUTTON */}
+                                                        <button
+                                                            onClick={() => handleEdit(item)}
                                                             className="w-8 h-8 rounded-lg border border-blue-200 text-blue-600 flex items-center justify-center hover:bg-blue-50 transition"
+                                                            title="Edit Laporan"
                                                         >
                                                             <EditIcon />
-                                                        </Link>
+                                                        </button>
 
-                                                        {/* DELETE */}
+                                                        {/* DELETE BUTTON */}
                                                         <button
                                                             onClick={() =>
-                                                                handleDelete(
-                                                                    item.id
-                                                                )
+                                                                handleDelete(item.id)
                                                             }
                                                             className="w-8 h-8 rounded-lg border border-red-200 text-red-500 flex items-center justify-center hover:bg-red-50 transition"
+                                                            title="Hapus Laporan"
                                                         >
                                                             <DeleteIcon />
                                                         </button>
@@ -401,6 +452,28 @@ const statusColor =
                     </div>
                 </div>
             </div>
+
+            {/* EDIT MODAL */}
+            <EditReportModal
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedReport(null);
+                }}
+                report={selectedReport ? transformReportForModal(selectedReport) : null}
+                petugasUsers={petugasUsers}
+                mitraUsers={mitraUsers}
+            />
+
+            {/* DETAIL MODAL */}
+           <DetailReportModal
+                isOpen={isDetailModalOpen}
+                onClose={() => {
+                    setIsDetailModalOpen(false);
+                    setSelectedReport(null);
+                }}
+                report={selectedReport ? transformReportForDetail(selectedReport) : null}
+            />
         </AuthLayout>
     );
 }
@@ -463,7 +536,6 @@ function ViewIcon() {
                 strokeLinejoin="round"
                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
             />
-
             <path
                 strokeLinecap="round"
                 strokeLinejoin="round"

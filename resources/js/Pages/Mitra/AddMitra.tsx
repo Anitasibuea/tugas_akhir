@@ -42,11 +42,11 @@ export default function AddMitra({ auth, petugasUsers }: AddMitraProps) {
         e.preventDefault();
         setIsSubmitting(true);
         
-        router.post("/mitra", values, {
+        router.post("/dashboard/mitra", values, {
             onFinish: () => setIsSubmitting(false),
             onSuccess: () => {
                 // Reset form or redirect
-                router.get("/mitra");
+                router.get("/dashboard/mitra");
             }
         });
     };

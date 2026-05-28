@@ -31,7 +31,7 @@ type Mitra = {
 };
 
 type Report = {
-    no_laporan: number;
+    id: number;
     tanggal: string;
     deskripsi: string;
     status_laporan: string;
@@ -119,7 +119,7 @@ export default function Reports({
             return;
         }
         
-        router.post("/report", form, {
+        router.post("/dashboard/report", form, {
             onSuccess: () => {
                 setForm({
                     tanggal: "",

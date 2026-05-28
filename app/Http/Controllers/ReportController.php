@@ -127,10 +127,10 @@ class ReportController extends Controller
             'status_laporan' => 'required',
             'tipe_tiang' => 'required',
             'lokasi' => 'required',
-            'petugas_mitra' => 'required',
+            'petugas_lapangan' => 'required|exists:users,id',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
-            'nama_mitra' => 'required'
+            'nama_mitra' => 'required|exists:mitra,id',
         ]);
 
         $laporan->update($validated);
@@ -145,22 +145,16 @@ class ReportController extends Controller
     /**
      * Menghapus data laporan
      */
-    public function destroy($id)
-    {
-        $laporan = Laporan::find($id);
+public function destroy($id)
+{
+    $laporan = Laporan::find($id);
 
-        if (!$laporan) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data laporan tidak ditemukan'
-            ], 404);
-        }
-
-        $laporan->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Data laporan berhasil dihapus'
-        ], 200);
+    if (!$laporan) {
+        return redirect()->back()->with('error', 'Data laporan tidak ditemukan');
     }
+
+    $laporan->delete();
+
+    return redirect()->back()->with('success', 'Data laporan berhasil dihapus');
+}
 }

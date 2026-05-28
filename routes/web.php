@@ -72,7 +72,7 @@ Route::middleware(['auth', 'role:admin|petugas'])
 
                 Route::post('/report', 'store')->name('store');
 
-                Route::patch('/report/{id}', 'update')->name('update');
+                Route::put('/report/{id}', 'update')->name('update');
 
                 Route::delete('/report/{id}', 'destroy')->name('destroy');
             });

@@ -13,7 +13,7 @@ class Laporan extends Model
     protected $table = 'report';
 
     // Primary key
-    protected $primaryKey = 'no_laporan';
+    protected $primaryKey = 'id';
 
     // Kolom yang boleh diisi
     protected $fillable = [
@@ -23,16 +23,16 @@ class Laporan extends Model
         'status_laporan',
         'tipe_tiang',
         'lokasi',
-        'petugas_mitra',
+        'petugas_lapangan',
         'latitude',
         'longitude',
         'nama_mitra'
     ];
 
-    // Jika primary key auto increment
-    public $incrementing = true;
+// Jika primary key auto increment
+public $incrementing = false;  // string IDs are not auto-increment
 
-    // Tipe primary key
-    protected $keyType = 'int';
+// Tipe primary key
+protected $keyType = 'string';  // PLN-2025-001 is a string
 }
 

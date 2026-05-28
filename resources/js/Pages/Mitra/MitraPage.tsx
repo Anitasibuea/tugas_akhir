@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Head, router } from "@inertiajs/react";
+import { Head, Link, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthLayout";
 import { PageProps } from "@/types";
 
@@ -260,13 +260,13 @@ export default function MitraPage({ auth, mitras }: MitraPageProps) {
                             </p>
                         </div>
 
-                        <button
-                            onClick={() => router.get("/mitra/add")}
+                        <Link
+                            href={route("mitra.add")}
                             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm shadow-blue-200 transition-all duration-150 self-start sm:self-auto"
                         >
                             <PlusIcon />
                             Tambah Mitra
-                        </button>
+                        </Link>
                     </div>
 
                     {/* ── Toolbar: Search + Filter ── */}
