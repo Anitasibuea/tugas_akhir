@@ -11,7 +11,7 @@ export interface ReportDetail {
     deskripsi: string;
     created_at?: string;
     updated_at?: string;
-    foto?: string[] | null;
+    foto: string | null;
 }
 
 export const formatDate = (dateString: string, locale: string = 'id-ID'): string => {

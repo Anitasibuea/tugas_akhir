@@ -91,6 +91,15 @@ Route::middleware(['auth', 'role:admin|petugas'])
         });
         });
 
+Route::middleware(['auth', 'role:mitra'])->prefix('dashboard')->group(function(){
+   Route::controller(ReportController::class)
+            ->name('reports.')
+            ->group(function () {
+
+                Route::get('/report', 'index')->name('index');
+            });
+});
+
 // Route::prefix('mitra')
 //     ->controller(MitraController::class)
 //     ->name('mitra.')

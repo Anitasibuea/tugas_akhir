@@ -26,7 +26,8 @@ class Laporan extends Model
         'petugas_lapangan',
         'latitude',
         'longitude',
-        'nama_mitra'
+        'nama_mitra',
+        'foto',
     ];
 
 // Jika primary key auto increment

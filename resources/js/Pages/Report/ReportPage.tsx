@@ -19,12 +19,13 @@ interface Report {
     tipe_tiang: string;
     status_laporan: Status;
     nama_mitra: string;
-    petugas_mitra: string;
+    petugas_lapangan: string;
     latitude: number;
     longitude: number;
     deskripsi: string;
     created_at?: string;
     updated_at?: string;
+    foto: string;
 }
 
 interface Props extends PageProps {
@@ -99,7 +100,7 @@ export default function ReportPage({
                 item.tipe_tiang,
                 item.status_laporan,
                 item.nama_mitra,
-                item.petugas_mitra,
+                item.petugas_lapangan,
             ]
                 .join(" ")
                 .toLowerCase()
@@ -136,10 +137,11 @@ export default function ReportPage({
             status_laporan: report.status_laporan,
             tipe_tiang: report.tipe_tiang,
             lokasi: report.lokasi,
-            petugas_lapangan: report.petugas_mitra,
+            petugas_lapangan: report.petugas_lapangan,
             latitude: report.latitude || 0,
             longitude: report.longitude || 0,
             nama_mitra: report.nama_mitra,
+            foto: report.foto,
         };
     };
 
@@ -152,10 +154,11 @@ export default function ReportPage({
             tipe_tiang: report.tipe_tiang,
             status_laporan: report.status_laporan,
             nama_mitra: report.nama_mitra,
-            petugas_mitra: report.petugas_mitra,
+            petugas_mitra: report.petugas_lapangan,
             latitude: report.latitude || 0,
             longitude: report.longitude || 0,
             deskripsi: report.deskripsi || "",
+            foto: report.foto,
             created_at: report.created_at,
             updated_at: report.updated_at,
         };
@@ -336,7 +339,7 @@ export default function ReportPage({
 
                                                 {/* PETUGAS */}
                                                 <td className="px-5 py-4 text-slate-600 whitespace-nowrap">
-                                                    {item.petugas_mitra}
+                                                    {item.petugas_lapangan}
                                                 </td>
 
                                                 {/* ACTION */}

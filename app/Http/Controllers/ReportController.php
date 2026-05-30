@@ -12,8 +12,26 @@ class ReportController extends Controller
 {
     public function index()
     {
+   $user = auth()->user();
+    $query = Laporan::query();
+
+    // Check if user has mitra role
+    if ($user->roles->contains('name', 'mitra')) {
+        $mitra = Mitra::where('id', $user->id)->first();
+
+        if ($mitra) {
+            $query->where('nama_perusahaan', $mitra->nama_perusahaan);
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+    }
         return Inertia::render("Report/ReportPage", [
             "report" => Laporan::latest()->get(),
+                'petugasUsers' => User::role('petugas')
+                    ->select('id', 'name')
+                    ->get(),
+                'mitraUsers' => Mitra::select('id', 'nama_perusahaan')
+    ->get(),
         ]
         );
     }
@@ -47,8 +65,16 @@ class ReportController extends Controller
         'latitude' => 'required|numeric',
         'longitude' => 'required|numeric',
         'nama_mitra' => 'required|exists:mitra,id',
+        'foto' => 'required|file|mimes:pdf,jpeg,jpg,png|max:5120'
     ]);
 
+    $petugas = User::find($validated['petugas_lapangan']);
+    $mitra = Mitra::find($validated['nama_mitra']);
+
+    $validated['petugas_lapangan'] = $petugas->name;
+    $validated['nama_mitra'] = $mitra->nama_perusahaan;
+    $validated['foto'] = $request->file('foto')->store('dokumen/foto', 'public');
+    
     /* GET CURRENT YEAR */
     $year = date('Y');
 
@@ -111,36 +137,37 @@ class ReportController extends Controller
      * Mengupdate data laporan
      */
     public function update(Request $request, $id)
-    {
-        $laporan = Laporan::find($id);
+{
+    $laporan = Laporan::find($id);
 
-        if (!$laporan) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data laporan tidak ditemukan'
-            ], 404);
-        }
-
-        $validated = $request->validate([
-            'tanggal' => 'required|date',
-            'deskripsi' => 'required',
-            'status_laporan' => 'required',
-            'tipe_tiang' => 'required',
-            'lokasi' => 'required',
-            'petugas_lapangan' => 'required|exists:users,id',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'nama_mitra' => 'required|exists:mitra,id',
-        ]);
-
-        $laporan->update($validated);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Data laporan berhasil diupdate',
-            'data' => $laporan
-        ], 200);
+    if (!$laporan) {
+        return redirect()->back()->with('error', 'Data laporan tidak ditemukan');
     }
+
+    $validated = $request->validate([
+        'tanggal' => 'required|date',
+        'deskripsi' => 'required',
+        'status_laporan' => 'required',
+        'tipe_tiang' => 'required',
+        'lokasi' => 'required',
+        'petugas_lapangan' => 'required|exists:users,id',
+        'latitude' => 'required|numeric',
+        'longitude' => 'required|numeric',
+        'nama_mitra' => 'required|exists:mitra,id',
+    ]);
+
+    // Get the actual names from the IDs
+    $petugas = User::find($validated['petugas_lapangan']);
+    $mitra = Mitra::find($validated['nama_mitra']);
+
+    // Replace IDs with actual names
+    $validated['petugas_lapangan'] = $petugas->name;
+    $validated['nama_mitra'] = $mitra->nama_perusahaan;
+
+    $laporan->update($validated);
+
+    return redirect()->back()->with('success', 'Data laporan berhasil diupdate');
+}
 
     /**
      * Menghapus data laporan
