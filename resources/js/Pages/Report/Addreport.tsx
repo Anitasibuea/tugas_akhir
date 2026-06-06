@@ -37,7 +37,9 @@ type Report = {
     deskripsi: string;
     status_laporan: string;
     tipe_tiang: string;
+    jenis_kabel: string;
     lokasi: string;
+    panjang_tiang: string;
     petugas_lapangan: string;
     latitude: number;
     longitude: number;
@@ -56,7 +58,9 @@ type FormState = {
     deskripsi: string;
     status_laporan: string;
     tipe_tiang: string;
+    jenis_kabel: string;
     lokasi: string;
+    panjang_tiang: string;
     petugas_lapangan: number | "";
     latitude: number | "";
     longitude: number | "";
@@ -121,7 +125,9 @@ export default function Reports({
         deskripsi: "",
         status_laporan: "",
         tipe_tiang: "",
+        jenis_kabel: "",
         lokasi: "",
+        panjang_tiang: "",
         petugas_lapangan: "",
         latitude: "",
         longitude: "",
@@ -206,6 +212,8 @@ export default function Reports({
         formData.append("deskripsi", form.deskripsi);
         formData.append("status_laporan", form.status_laporan);
         formData.append("tipe_tiang", form.tipe_tiang);
+        formData.append("jenis_kabel", form.jenis_kabel);
+         formData.append("panjang_tiang", form.panjang_tiang);
         formData.append("lokasi", form.lokasi);
         formData.append("petugas_lapangan", form.petugas_lapangan.toString());
         formData.append("latitude", form.latitude.toString());
@@ -225,7 +233,9 @@ export default function Reports({
                     deskripsi: "",
                     status_laporan: "",
                     tipe_tiang: "",
+                    jenis_kabel:"",
                     lokasi: "",
+                    panjang_tiang: "",
                     petugas_lapangan: "",
                     latitude: "",
                     longitude: "",
@@ -327,7 +337,7 @@ export default function Reports({
             setMapCenter([-6.200000, 106.816666]);
             setMapZoom(13);
         }
-    }, []);
+    });
 
     return (
         <AuthLayout user={auth.user}>
@@ -444,6 +454,34 @@ export default function Reports({
                                         </select>
                                     </div>
                                 </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                     <div>
+                                        <label className="text-sm font-medium text-gray-700">Jenis kabel</label>
+                                        <select
+                                            value={form.jenis_kabel}
+                                            onChange={(e) =>
+                                                setForm({ ...form, jenis_kabel: e.target.value })
+                                            }
+                                            className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
+                                            required
+                                        >
+                                            <option value="">Jenis kabel</option>
+                                            <option value="Fiber Optik">Fiber Optik</option>
+                                            <option value="Listrik">Listrik</option>
+                                        </select>
+                                    </div>
+                                   <div>
+                                 <label className="text-sm font-medium text-gray-700">Panjang Tiang</label>
+                                        <input
+                                        type="text"
+                                        value={form.panjang_tiang || ''}   // ← diubah ke string (pastikan state ini string)
+                                        onChange={(e) => setForm({ ...form, panjang_tiang: e.target.value })}
+                                     className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
+                                        required
+                                              />
+                                            </div>
+                                </div>
+
 
                                 {/* Upload Foto */}
                                 <div>

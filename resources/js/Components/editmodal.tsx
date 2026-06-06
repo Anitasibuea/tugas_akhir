@@ -36,6 +36,8 @@ type Report = {
     status_laporan: string;
     tipe_tiang: string;
     lokasi: string;
+    jenis_kabel: string;
+    panjang_tiang: string;
     petugas_lapangan: string;
     latitude: number;
     longitude: number;
@@ -56,6 +58,8 @@ type FormState = {
     status_laporan: string;
     tipe_tiang: string;
     lokasi: string;
+    jenis_kabel: string;
+    panjang_tiang: string;
     petugas_lapangan: number | "";
     latitude: number | "";
     longitude: number | "";
@@ -75,6 +79,8 @@ export default function EditReportModal({
         status_laporan: "",
         tipe_tiang: "",
         lokasi: "",
+        jenis_kabel: "",
+        panjang_tiang: "",
         petugas_lapangan: "",
         latitude: "",
         longitude: "",
@@ -94,6 +100,8 @@ export default function EditReportModal({
                 status_laporan: report.status_laporan,
                 tipe_tiang: report.tipe_tiang,
                 lokasi: report.lokasi,
+                jenis_kabel: report.jenis_kabel,
+                panjang_tiang: report.panjang_tiang,
                 petugas_lapangan: report.petugas_lapangan ? Number(report.petugas_lapangan) : "",
                 latitude: report.latitude || "",
                 longitude: report.longitude || "",
@@ -162,6 +170,8 @@ export default function EditReportModal({
             status_laporan: "",
             tipe_tiang: "",
             lokasi: "",
+            jenis_kabel: "",
+            panjang_tiang: "",
             petugas_lapangan: "",
             latitude: "",
             longitude: "",
@@ -339,7 +349,33 @@ export default function EditReportModal({
                                             </select>
                                         </div>
                                     </div>
-
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                     <div>
+                                        <label className="text-sm font-medium text-gray-700">Jenis kabel</label>
+                                        <select
+                                            value={form.jenis_kabel}
+                                            onChange={(e) =>
+                                                setForm({ ...form, jenis_kabel: e.target.value })
+                                            }
+                                            className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
+                                            required
+                                        >
+                                            <option value="">Jenis kabel</option>
+                                            <option value="Fiber Optik">Fiber Optik</option>
+                                            <option value="Listrik">Listrik</option>
+                                        </select>
+                                    </div>
+                                   <div>
+                                 <label className="text-sm font-medium text-gray-700">Panjang Tiang</label>
+                                        <input
+                                        type="text"
+                                        value={form.panjang_tiang || ''}   // ← diubah ke string (pastikan state ini string)
+                                        onChange={(e) => setForm({ ...form, panjang_tiang: e.target.value })}
+                                     className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
+                                        required
+                                              />
+                                            </div>
+                                </div>  
                                     {/* Deskripsi */}
                                     <div>
                                         <label className="text-sm font-medium text-gray-700">Deskripsi</label>

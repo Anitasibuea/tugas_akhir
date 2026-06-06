@@ -18,4 +18,14 @@ class Mitra extends Model
     'petugas_mapping',
     'status',
 ];
+
+    public function user()
+    {
+        return $this->belongsTo(Mitra::class);
+    }
+
+    public function laporans()
+    {
+        return $this->hasMany(Laporan::class);
+    }
 }

@@ -23,6 +23,8 @@ class Laporan extends Model
         'status_laporan',
         'tipe_tiang',
         'lokasi',
+        'jenis_kabel',
+        'panjang_tiang',
         'petugas_lapangan',
         'latitude',
         'longitude',

@@ -12,28 +12,35 @@ class ReportController extends Controller
 {
     public function index()
     {
-   $user = auth()->user();
-    $query = Laporan::query();
+        $user = auth()->user();
+        $query = Laporan::query();
 
-    // Check if user has mitra role
+     // If user has role 'mitra', filter reports by their own company name
     if ($user->roles->contains('name', 'mitra')) {
-        $mitra = Mitra::where('id', $user->id)->first();
+        // Get the Mitra record linked to this user
+        // Choose the correct option based on your schema:
+
+        // Option 1: If users table has 'mitra_id' column
+        $mitra = $user->mitra_id ? Mitra::find($user->mitra_id) : null;
+
+        // Option 2: If mitras table has 'petugas_mapping' column (user_id)
+        // $mitra = Mitra::where('petugas_mapping', $user->id)->first();
 
         if ($mitra) {
-            $query->where('nama_perusahaan', $mitra->nama_perusahaan);
+            // Filter by the exact company name stored in laporan.nama_mitra
+            $query->where('nama_mitra', $mitra->nama_perusahaan);
         } else {
+            // No mitra linked → return empty result
             $query->whereRaw('1 = 0');
         }
+    
     }
-        return Inertia::render("Report/ReportPage", [
-            "report" => Laporan::latest()->get(),
-                'petugasUsers' => User::role('petugas')
-                    ->select('id', 'name')
-                    ->get(),
-                'mitraUsers' => Mitra::select('id', 'nama_perusahaan')
-    ->get(),
-        ]
-        );
+
+    return Inertia::render("Report/ReportPage", [
+        "report" => Laporan::latest()->get(),
+        'petugasUsers' => User::role('petugas')->select('id', 'name')->get(),
+        'mitraUsers' => Mitra::select('id', 'nama_perusahaan')->get(),
+    ]);
     }
     /**
      * Menampilkan semua data laporan
@@ -61,6 +68,8 @@ class ReportController extends Controller
         'status_laporan' => 'required',
         'tipe_tiang' => 'required',
         'lokasi' => 'required',
+        'jenis_kabel' => 'required',
+        'panjang_tiang' => 'required',
         'petugas_lapangan' => 'required|exists:users,id',
         'latitude' => 'required|numeric',
         'longitude' => 'required|numeric',
@@ -150,6 +159,8 @@ class ReportController extends Controller
         'status_laporan' => 'required',
         'tipe_tiang' => 'required',
         'lokasi' => 'required',
+         'jenis_kabel' => 'required',
+        'panjang_tiang' => 'required',
         'petugas_lapangan' => 'required|exists:users,id',
         'latitude' => 'required|numeric',
         'longitude' => 'required|numeric',

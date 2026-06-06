@@ -1,7 +1,7 @@
 import AuthLayout from "@/Layouts/AuthLayout";
-import { PageProps } from "@/types";
+import { PageProps, User } from "@/types";
 import { Link, router } from "@inertiajs/react";
-import { useMemo, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import EditReportModal from "@/Components/editmodal";
 import DetailReportModal from "@/Components/DetailLaporan";
 import { ReportDetail } from "@/types/report";
@@ -9,6 +9,10 @@ import { ReportDetail } from "@/types/report";
 /* ──────────────────────────────────────────────────────────
    TYPES
 ────────────────────────────────────────────────────────── */
+interface AuthenticatedLayoutProps {
+    user: User;
+    header?: ReactNode;
+}
 
 type Status = "Open" | "Pending" | "Closed";
 
@@ -32,6 +36,7 @@ interface Props extends PageProps {
     report: Report[];
     petugasUsers?: Array<{ id: number; name: string }>;
     mitraUsers?: Array<{ id: number; name: string }>;
+    user: AuthenticatedLayoutProps;
 }
 
 /* ──────────────────────────────────────────────────────────
@@ -66,10 +71,25 @@ const TIPE_COLORS: Record<string, string> = {
 };
 
 /* ──────────────────────────────────────────────────────────
+   ROLE HELPERS
+   - canEdit:   admin, petugas  → show Edit + Delete buttons
+   - viewOnly:  mitra, manajer  → View button only
+────────────────────────────────────────────────────────── */
+const EDIT_ROLES = ["admin", "petugas"];
+
+function useRolePermissions(role?: string | number | null) {
+    const normalizedRole = String(role ?? "").toLowerCase();
+    return {
+        canEdit: EDIT_ROLES.includes(normalizedRole),
+    };
+}
+
+/* ──────────────────────────────────────────────────────────
    PAGE
 ────────────────────────────────────────────────────────── */
 
 export default function ReportPage({
+    user,
     auth,
     report,
     petugasUsers = [],
@@ -81,17 +101,20 @@ export default function ReportPage({
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-    
+
+    // Determine role-based permissions from the authenticated user
+    const { canEdit } = useRolePermissions(auth.user?.role);
+
     const handleEdit = (reportItem: Report) => {
         setSelectedReport(reportItem);
         setIsEditModalOpen(true);
     };
-    
+
     const handleViewDetail = (reportItem: Report) => {
         setSelectedReport(reportItem);
         setIsDetailModalOpen(true);
     };
-    
+
     const filteredData = useMemo(() => {
         return report.filter((item) =>
             [
@@ -183,13 +206,16 @@ export default function ReportPage({
                         </p>
                     </div>
 
-                    <Link
-                        href={route("reports.add")}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition shadow-sm"
-                    >
-                        <PlusIcon />
-                        Tambah Laporan
-                    </Link>
+                    {/* Only admin & petugas can add a new report */}
+                    {canEdit && (
+                        <Link
+                            href={route("reports.add")}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition shadow-sm"
+                        >
+                            <PlusIcon />
+                            Tambah Laporan
+                        </Link>
+                    )}
                 </div>
 
                 {/* CARD */}
@@ -208,7 +234,7 @@ export default function ReportPage({
                                     setShowEntries(Number(e.target.value));
                                     setPage(1);
                                 }}
-                                className="border border-slate-200 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="border border-slate-200 rounded-lg px-6 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 {[5, 10, 25, 50].map((n) => (
                                     <option key={n}>
@@ -285,7 +311,7 @@ export default function ReportPage({
                                         const statusColor =
                                             STATUS_COLORS[normalizedStatus as Status] ??
                                             STATUS_COLORS.Open;
-                                        
+
                                         return (
                                             <tr
                                                 key={item.id}
@@ -345,33 +371,35 @@ export default function ReportPage({
                                                 {/* ACTION */}
                                                 <td className="px-5 py-4">
                                                     <div className="flex items-center gap-2">
-                                                        {/* VIEW BUTTON */}
+                                                        {/* VIEW — visible to ALL roles */}
                                                         <button
                                                             onClick={() => handleViewDetail(item)}
                                                             className="w-8 h-8 rounded-lg border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-50 transition"
-                                                            title="Lihat Detail">
+                                                            title="Lihat Detail"
+                                                        >
                                                             <ViewIcon />
                                                         </button>
 
-                                                        {/* EDIT BUTTON */}
-                                                        <button
-                                                            onClick={() => handleEdit(item)}
-                                                            className="w-8 h-8 rounded-lg border border-blue-200 text-blue-600 flex items-center justify-center hover:bg-blue-50 transition"
-                                                            title="Edit Laporan"
-                                                        >
-                                                            <EditIcon />
-                                                        </button>
+                                                        {/* EDIT & DELETE — admin and petugas only */}
+                                                        {canEdit && (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => handleEdit(item)}
+                                                                    className="w-8 h-8 rounded-lg border border-blue-200 text-blue-600 flex items-center justify-center hover:bg-blue-50 transition"
+                                                                    title="Edit Laporan"
+                                                                >
+                                                                    <EditIcon />
+                                                                </button>
 
-                                                        {/* DELETE BUTTON */}
-                                                        <button
-                                                            onClick={() =>
-                                                                handleDelete(item.id)
-                                                            }
-                                                            className="w-8 h-8 rounded-lg border border-red-200 text-red-500 flex items-center justify-center hover:bg-red-50 transition"
-                                                            title="Hapus Laporan"
-                                                        >
-                                                            <DeleteIcon />
-                                                        </button>
+                                                                <button
+                                                                    onClick={() => handleDelete(item.id)}
+                                                                    className="w-8 h-8 rounded-lg border border-red-200 text-red-500 flex items-center justify-center hover:bg-red-50 transition"
+                                                                    title="Hapus Laporan"
+                                                                >
+                                                                    <DeleteIcon />
+                                                                </button>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -469,7 +497,7 @@ export default function ReportPage({
             />
 
             {/* DETAIL MODAL */}
-           <DetailReportModal
+            <DetailReportModal
                 isOpen={isDetailModalOpen}
                 onClose={() => {
                     setIsDetailModalOpen(false);

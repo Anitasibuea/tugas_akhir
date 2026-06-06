@@ -58,23 +58,32 @@ Route::get('/dashboard', function () {
 
 //     });
 
-Route::middleware(['auth', 'role:admin|petugas'])
+Route::middleware(['auth'])
     ->prefix('dashboard')
     ->group(function () {
 
         Route::controller(ReportController::class)
+            ->prefix('report')
             ->name('reports.')
             ->group(function () {
 
-                Route::get('/report', 'index')->name('index');
+                Route::get('/', 'index')->name('index');
 
-                Route::get('/report/add', 'index2')->name('add');
+                Route::get('/add', 'index2')
+                    ->middleware('role:admin|petugas')
+                    ->name('add');
 
-                Route::post('/report', 'store')->name('store');
+                Route::post('/', 'store')
+                    ->middleware('role:admin|petugas')
+                    ->name('store');
 
-                Route::put('/report/{id}', 'update')->name('update');
+                Route::put('/{id}', 'update')
+                    ->middleware('role:admin|petugas')
+                    ->name('update');
 
-                Route::delete('/report/{id}', 'destroy')->name('destroy');
+                Route::delete('/{id}', 'destroy')
+                    ->middleware('role:admin')
+                    ->name('destroy');
             });
     });
 
@@ -91,14 +100,7 @@ Route::middleware(['auth', 'role:admin|petugas'])
         });
         });
 
-Route::middleware(['auth', 'role:mitra'])->prefix('dashboard')->group(function(){
-   Route::controller(ReportController::class)
-            ->name('reports.')
-            ->group(function () {
 
-                Route::get('/report', 'index')->name('index');
-            });
-});
 
 // Route::prefix('mitra')
 //     ->controller(MitraController::class)

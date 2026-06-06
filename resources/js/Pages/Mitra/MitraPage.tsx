@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthLayout";
-import { PageProps } from "@/types";
+import { PageProps, User } from "@/types";
 
 // ─── Icons ──────────────────────────────────────────────────────────────────
+interface AuthenticatedLayoutProps {
+    user: User;
+    header?: ReactNode;
+}
 
 const BuildingIcon = () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
@@ -66,18 +70,26 @@ const SearchIcon = () => (
     </svg>
 );
 
+// ─── Role Helper ─────────────────────────────────────────────────────────────
+// admin  → full CRUD (Lihat Detail + Edit + Delete + Tambah)
+// manajer → view only (Lihat Detail only)
+
+function isAdmin(role?: string | null): boolean {
+    return String(role ?? "").toLowerCase() === "admin";
+}
+
 // ─── Status Badge ────────────────────────────────────────────────────────────
 
 const StatusBadge = ({ status }: { status: string }) => {
-    const isActive = status?.toLowerCase() === "aktif";
+    const active = status?.toLowerCase() === "aktif";
     return (
         <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide ${
-            isActive
+            active
                 ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
                 : "bg-red-50 text-red-600 ring-1 ring-red-200"
         }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-emerald-500" : "bg-red-400"}`} />
-            {isActive ? "Aktif" : "Nonaktif"}
+            <span className={`w-1.5 h-1.5 rounded-full ${active ? "bg-emerald-500" : "bg-red-400"}`} />
+            {active ? "Aktif" : "Nonaktif"}
         </span>
     );
 };
@@ -101,6 +113,7 @@ interface CardProps {
     email: string;
     petugasMapping: string;
     status: string;
+    canEdit: boolean; // derived from role, passed down from parent
     onLihatDetail: () => void;
     onEdit: () => void;
     onDelete: () => void;
@@ -108,9 +121,8 @@ interface CardProps {
 
 const CompanyCard = ({
     companyName, address, phone, email, petugasMapping, status,
-    onLihatDetail, onEdit, onDelete,
+    canEdit, onLihatDetail, onEdit, onDelete,
 }: CardProps) => {
-    // Initials avatar
     const initials = companyName
         .split(" ")
         .slice(0, 2)
@@ -154,25 +166,32 @@ const CompanyCard = ({
 
                 {/* Actions */}
                 <div className="flex gap-2 mt-auto pt-1">
+                    {/* Lihat Detail — visible to ALL roles */}
                     <button
                         onClick={onLihatDetail}
                         className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-semibold py-2 rounded-xl transition-colors duration-150"
                     >
                         Lihat Detail
                     </button>
-                    <button
-                        onClick={onEdit}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 text-[13px] font-medium transition-colors duration-150"
-                    >
-                        <EditIcon />
-                        Edit
-                    </button>
-                    <button
-                        onClick={onDelete}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 text-[13px] font-medium transition-colors duration-150"
-                    >
-                        <TrashIcon />
-                    </button>
+
+                    {/* Edit & Delete — admin only */}
+                    {canEdit && (
+                        <>
+                            <button
+                                onClick={onEdit}
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 text-[13px] font-medium transition-colors duration-150"
+                            >
+                                <EditIcon />
+                                Edit
+                            </button>
+                            <button
+                                onClick={onDelete}
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 text-[13px] font-medium transition-colors duration-150"
+                            >
+                                <TrashIcon />
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
         </div>
@@ -181,22 +200,26 @@ const CompanyCard = ({
 
 // ─── Empty State ─────────────────────────────────────────────────────────────
 
-const EmptyState = ({ onAdd }: { onAdd: () => void }) => (
+const EmptyState = ({ canEdit }: { canEdit: boolean }) => (
     <div className="col-span-full flex flex-col items-center justify-center py-20 px-6 bg-white rounded-2xl border border-dashed border-slate-200">
         <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-4">
             <BuildingIcon />
         </div>
         <p className="text-slate-700 font-semibold text-base mb-1">Belum ada data mitra</p>
         <p className="text-slate-400 text-sm mb-6 text-center max-w-xs">
-            Mulai tambahkan mitra perusahaan Anda untuk mengelola data dengan lebih mudah.
+            {canEdit
+                ? "Mulai tambahkan mitra perusahaan Anda untuk mengelola data dengan lebih mudah."
+                : "Belum ada data mitra yang tersedia saat ini."}
         </p>
-        <button
-            onClick={onAdd}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors duration-150"
-        >
-            <PlusIcon />
-            Tambah Mitra Pertama
-        </button>
+        {canEdit && (
+            <button
+                onClick={() => router.get("/mitra/add")}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors duration-150"
+            >
+                <PlusIcon />
+                Tambah Mitra Pertama
+            </button>
+        )}
     </div>
 );
 
@@ -219,6 +242,9 @@ interface MitraPageProps extends PageProps {
 export default function MitraPage({ auth, mitras }: MitraPageProps) {
     const [search, setSearch] = useState("");
     const [filterStatus, setFilterStatus] = useState<"semua" | "aktif" | "nonaktif">("semua");
+
+    // Derive permissions once from the authenticated user's role
+    const canEdit = isAdmin(auth.user?.role);
 
     const filtered = (mitras ?? []).filter((m) => {
         const matchSearch =
@@ -260,13 +286,16 @@ export default function MitraPage({ auth, mitras }: MitraPageProps) {
                             </p>
                         </div>
 
-                        <Link
-                            href={route("mitra.add")}
-                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm shadow-blue-200 transition-all duration-150 self-start sm:self-auto"
-                        >
-                            <PlusIcon />
-                            Tambah Mitra
-                        </Link>
+                        {/* Tambah Mitra — admin only */}
+                        {canEdit && (
+                            <Link
+                                href={route("mitra.add")}
+                                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm shadow-blue-200 transition-all duration-150 self-start sm:self-auto"
+                            >
+                                <PlusIcon />
+                                Tambah Mitra
+                            </Link>
+                        )}
                     </div>
 
                     {/* ── Toolbar: Search + Filter ── */}
@@ -316,13 +345,14 @@ export default function MitraPage({ auth, mitras }: MitraPageProps) {
                                     email={mitra.email}
                                     petugasMapping={mitra.petugas_mapping}
                                     status={mitra.status}
+                                    canEdit={canEdit}
                                     onLihatDetail={() => router.get(`/mitra/${mitra.id}`)}
                                     onEdit={() => router.get(`/mitra/${mitra.id}/edit`)}
                                     onDelete={() => handleDelete(mitra.id, mitra.nama_perusahaan)}
                                 />
                             ))
                         ) : (
-                            <EmptyState onAdd={() => router.get("/mitra/add")} />
+                            <EmptyState canEdit={canEdit} />
                         )}
                     </div>
 

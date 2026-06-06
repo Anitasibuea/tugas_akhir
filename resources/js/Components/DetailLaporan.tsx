@@ -12,6 +12,8 @@ interface ReportDetail {
     tanggal: string;
     lokasi: string;
     tipe_tiang: string;
+    jenis_kabel: string;
+    panjang_tiang: string;
     status_laporan: 'Open' | 'Pending' | 'Closed';
     nama_mitra: string;
     petugas_mitra: string;
@@ -364,6 +366,7 @@ export default function DetailReportModal({ isOpen, onClose, report }: DetailRep
 
                                         {/* Grid Info */}
                                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                            
                                             <InfoCard icon={Icons.Calendar} title="Tanggal Laporan">
                                                 <p className="mt-1 text-sm font-medium text-gray-900">
                                                     {formattedDates.tanggal}
@@ -377,7 +380,18 @@ export default function DetailReportModal({ isOpen, onClose, report }: DetailRep
                                                     </span>
                                                 </div>
                                             </InfoCard>
-
+                                            <InfoCard icon={Icons.Calendar} title="Jenis Kabel">
+                                                <p className="mt-1 text-sm font-medium text-gray-900">
+                                                    {report.jenis_kabel}
+                                                </p>
+                                            </InfoCard>
+                                            <InfoCard icon={Icons.Building} title="Panjang Tiang">
+                                                <div className="mt-1">
+                                                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${tipeColor}`}>
+                                                        {report.panjang_tiang}
+                                                    </span>
+                                                </div>
+                                            </InfoCard>
                                             <div className="md:col-span-2">
                                                 <InfoCard icon={Icons.MapPin} title="Lokasi">
                                                     <p className="mt-1 text-sm text-gray-900">

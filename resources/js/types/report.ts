@@ -6,6 +6,8 @@ export interface ReportDetail {
     status_laporan: 'Open' | 'Pending' | 'Closed';
     nama_mitra: string;
     petugas_mitra: string;
+    jenis_kabel: string;
+    panjang_tiang: string;
     latitude: number;
     longitude: number;
     deskripsi: string;
