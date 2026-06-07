@@ -97,6 +97,8 @@ Route::middleware(['auth'])
         Route::get('/mitra', 'index')->name('index');
         Route::get('/mitra/add', 'index2')->name('add');
         Route::post('/mitra', 'store')->name('store');
+        Route::put('/mitra/{id}','update')->name('update');
+        Route::delete('/mitra/{id}','destroy')->name('destroy');
         });
         });
 

@@ -2,6 +2,8 @@ import { ReactNode, useState } from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthLayout";
 import { PageProps, User } from "@/types";
+import EditMitraForm from "@/Components/editmitramodal";
+import Modal from "@/Components/Modal";
 
 // ─── Icons ──────────────────────────────────────────────────────────────────
 interface AuthenticatedLayoutProps {
@@ -231,7 +233,7 @@ interface MitraData {
     alamat: string;
     telepon: string;
     email: string;
-    petugas_mapping: string;
+    petugas_mapping: { id: number; name: string }| null;
     status: string;
 }
 
@@ -242,7 +244,8 @@ interface MitraPageProps extends PageProps {
 export default function MitraPage({ auth, mitras }: MitraPageProps) {
     const [search, setSearch] = useState("");
     const [filterStatus, setFilterStatus] = useState<"semua" | "aktif" | "nonaktif">("semua");
-
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedMitra, setSelectedMitra] = useState<MitraData | null>(null);
     // Derive permissions once from the authenticated user's role
     const canEdit = isAdmin(auth.user?.role);
 
@@ -256,7 +259,15 @@ export default function MitraPage({ auth, mitras }: MitraPageProps) {
     });
 
     const handleDelete = (id: number, name: string) => {
-        if (confirm(`Hapus mitra "${name}"?`)) router.delete(`/mitra/${id}`);
+        if (confirm(`Hapus mitra "${name}"?`)) router.delete(`/dashboard/mitra/${id}`);
+    };
+    const handleEdit = (mitra: MitraData) => {
+        setSelectedMitra(mitra);
+        setIsEditModalOpen(true);
+    };
+    const handleEditSuccess = () => {
+        // Refresh the page data or update local state
+        router.reload({ only: ['mitras'] });
     };
 
     const counts = {
@@ -343,11 +354,11 @@ export default function MitraPage({ auth, mitras }: MitraPageProps) {
                                     address={mitra.alamat}
                                     phone={mitra.telepon}
                                     email={mitra.email}
-                                    petugasMapping={mitra.petugas_mapping}
+                                    petugasMapping={mitra.petugas_mapping?.name ?? '—'}
                                     status={mitra.status}
                                     canEdit={canEdit}
                                     onLihatDetail={() => router.get(`/mitra/${mitra.id}`)}
-                                    onEdit={() => router.get(`/mitra/${mitra.id}/edit`)}
+                                    onEdit={() => handleEdit(mitra)}
                                     onDelete={() => handleDelete(mitra.id, mitra.nama_perusahaan)}
                                 />
                             ))
@@ -364,6 +375,25 @@ export default function MitraPage({ auth, mitras }: MitraPageProps) {
                     )}
                 </div>
             </div>
+            <Modal
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedMitra(null);
+                }}
+                title="Edit Data Mitra"
+                size="lg"
+            >
+                <EditMitraForm
+                    isOpen={isEditModalOpen}
+                    onClose={() => {
+                        setIsEditModalOpen(false);
+                        setSelectedMitra(null);
+                    }}
+                    mitra={selectedMitra}
+                    onSuccess={handleEditSuccess}
+                />
+            </Modal>
         </AuthenticatedLayout>
     );
 }

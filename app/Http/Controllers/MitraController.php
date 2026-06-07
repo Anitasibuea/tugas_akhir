@@ -12,7 +12,7 @@ class MitraController extends Controller
     public function index() 
     {
         return Inertia::render("Mitra/MitraPage", [
-            "mitras"=> Mitra::latest()->get(),
+            "mitras" => Mitra::with('petugas:id,name')->latest()->get(),
         ]);
     }
 
@@ -47,4 +47,29 @@ class MitraController extends Controller
     );
 
     }
+    
+    public function update(Request $request,$id)
+    {
+       $validated = $request->validate([
+        'nama_perusahaan' => 'required',
+        'alamat' => 'required',
+        'telepon' => 'required',
+        'email' => 'required|email',
+        'petugas_mapping' => 'required|exists:users,id',
+        'status' => 'required',
+    ]);
+
+    $mitra = Mitra::findOrFail($id);
+    $mitra->update($validated);
+    return redirect()->route('mitra.index')->with('success', 'Mitra berhasil diupdate');
+    
+    }
+
+    public function destroy($id)
+{
+    $mitra = Mitra::findOrFail($id);
+    $mitra->delete();
+
+    return redirect()->route('mitra.index')->with('success', 'Mitra berhasil dihapus');
+}
 }

@@ -28,4 +28,8 @@ class Mitra extends Model
     {
         return $this->hasMany(Laporan::class);
     }
+    public function petugas()
+{
+    return $this->belongsTo(User::class, 'petugas_mapping');
+}
 }
