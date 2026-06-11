@@ -69,6 +69,8 @@ Route::middleware(['auth'])
 
                 Route::get('/', 'index')->name('index');
 
+                Route::get('/{id}/download-surat', 'pdf')->name('surat');
+
                 Route::get('/add', 'index2')
                     ->middleware('role:admin|petugas')
                     ->name('add');
@@ -84,6 +86,25 @@ Route::middleware(['auth'])
                 Route::delete('/{id}', 'destroy')
                     ->middleware('role:admin')
                     ->name('destroy');
+                
+                 Route::post('/sign/manajer', 'signManajerWithToken')
+                    ->middleware('role:manajer|mitra')
+                    ->name('signManajer');
+                Route::post('/sign/mitra', 'signMitraWithToken')
+                    ->middleware('role:manajer|mitra')
+                    ->name('signMitra');
+
+                // GENERATE QR - hanya manajer/admin yang boleh generate
+                Route::post('/{id}/generate-qr-manajer', 'generateQrForManajer')
+                    ->middleware('role:manajer|admin')
+                    ->name('generateQrManajer');
+                Route::post('/{id}/generate-qr-mitra', 'generateQrForMitra')
+                    ->middleware('role:manajer|admin')
+                    ->name('generateQrMitra');
+
+                // Verifikasi QR (bisa diakses publik dengan token)
+                Route::get('/verify/{token}', 'verifyQr')
+                    ->name('verify.qr');
             });
     });
 

@@ -38,6 +38,7 @@ type Report = {
     status_laporan: string;
     tipe_tiang: string;
     jenis_kabel: string;
+    jumlah_kabel: string;
     lokasi: string;
     panjang_tiang: string;
     petugas_lapangan: string;
@@ -59,6 +60,7 @@ type FormState = {
     status_laporan: string;
     tipe_tiang: string;
     jenis_kabel: string;
+    jumlah_kabel: string;
     lokasi: string;
     panjang_tiang: string;
     petugas_lapangan: number | "";
@@ -100,7 +102,9 @@ function CurrentLocationOnMount({ onLocationFound }: { onLocationFound: (lat: nu
                 },
                 (error) => {
                     console.error("Error getting location:", error);
-                    // Default to Indonesia center
+                    //
+                    
+                     
                     map.setView([-6.200000, 106.816666], 13);
                 },
                 { enableHighAccuracy: true }
@@ -126,6 +130,7 @@ export default function Reports({
         status_laporan: "",
         tipe_tiang: "",
         jenis_kabel: "",
+        jumlah_kabel: "",
         lokasi: "",
         panjang_tiang: "",
         petugas_lapangan: "",
@@ -213,7 +218,8 @@ export default function Reports({
         formData.append("status_laporan", form.status_laporan);
         formData.append("tipe_tiang", form.tipe_tiang);
         formData.append("jenis_kabel", form.jenis_kabel);
-         formData.append("panjang_tiang", form.panjang_tiang);
+        formData.append("jumlah_kabel", form.jumlah_kabel);
+        formData.append("panjang_tiang", form.panjang_tiang);
         formData.append("lokasi", form.lokasi);
         formData.append("petugas_lapangan", form.petugas_lapangan.toString());
         formData.append("latitude", form.latitude.toString());
@@ -234,6 +240,7 @@ export default function Reports({
                     status_laporan: "",
                     tipe_tiang: "",
                     jenis_kabel:"",
+                    jumlah_kabel:"",
                     lokasi: "",
                     panjang_tiang: "",
                     petugas_lapangan: "",
@@ -454,7 +461,7 @@ export default function Reports({
                                         </select>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                      <div>
                                         <label className="text-sm font-medium text-gray-700">Jenis kabel</label>
                                         <select
@@ -476,6 +483,16 @@ export default function Reports({
                                         type="text"
                                         value={form.panjang_tiang || ''}   // ← diubah ke string (pastikan state ini string)
                                         onChange={(e) => setForm({ ...form, panjang_tiang: e.target.value })}
+                                     className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
+                                        required
+                                              />
+                                            </div>
+                                               <div>
+                                 <label className="text-sm font-medium text-gray-700">Jumlah Kabel</label>
+                                        <input
+                                        type="text"
+                                        value={form.jumlah_kabel || ''}   // ← diubah ke string (pastikan state ini string)
+                                        onChange={(e) => setForm({ ...form, jumlah_kabel: e.target.value })}
                                      className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
                                         required
                                               />

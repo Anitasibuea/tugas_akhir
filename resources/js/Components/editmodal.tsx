@@ -37,6 +37,7 @@ type Report = {
     tipe_tiang: string;
     lokasi: string;
     jenis_kabel: string;
+    jumlah_kabel: string;
     panjang_tiang: string;
     petugas_lapangan: string;
     latitude: number;
@@ -59,6 +60,7 @@ type FormState = {
     tipe_tiang: string;
     lokasi: string;
     jenis_kabel: string;
+    jumlah_kabel: string,
     panjang_tiang: string;
     petugas_lapangan: number | "";
     latitude: number | "";
@@ -80,6 +82,7 @@ export default function EditReportModal({
         tipe_tiang: "",
         lokasi: "",
         jenis_kabel: "",
+        jumlah_kabel: "",
         panjang_tiang: "",
         petugas_lapangan: "",
         latitude: "",
@@ -101,6 +104,7 @@ export default function EditReportModal({
                 tipe_tiang: report.tipe_tiang,
                 lokasi: report.lokasi,
                 jenis_kabel: report.jenis_kabel,
+                jumlah_kabel: report.jumlah_kabel,
                 panjang_tiang: report.panjang_tiang,
                 petugas_lapangan: report.petugas_lapangan ? Number(report.petugas_lapangan) : "",
                 latitude: report.latitude || "",
@@ -171,6 +175,7 @@ export default function EditReportModal({
             tipe_tiang: "",
             lokasi: "",
             jenis_kabel: "",
+            jumlah_kabel: "",
             panjang_tiang: "",
             petugas_lapangan: "",
             latitude: "",
@@ -349,7 +354,7 @@ export default function EditReportModal({
                                             </select>
                                         </div>
                                     </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                      <div>
                                         <label className="text-sm font-medium text-gray-700">Jenis kabel</label>
                                         <select
@@ -371,6 +376,16 @@ export default function EditReportModal({
                                         type="text"
                                         value={form.panjang_tiang || ''}   // ← diubah ke string (pastikan state ini string)
                                         onChange={(e) => setForm({ ...form, panjang_tiang: e.target.value })}
+                                     className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
+                                        required
+                                              />
+                                            </div>
+                                              <div>
+                                 <label className="text-sm font-medium text-gray-700">Jumlah Kabel</label>
+                                        <input
+                                        type="text"
+                                        value={form.jumlah_kabel || ''}   // ← diubah ke string (pastikan state ini string)
+                                        onChange={(e) => setForm({ ...form, jumlah_kabel: e.target.value })}
                                      className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
                                         required
                                               />

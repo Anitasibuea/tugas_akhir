@@ -46,6 +46,13 @@ class HandleInertiaRequests extends Middleware
                     ]
                     : null,
             ],
+
+            'flash' => [
+                'success'   => $request->session()->get('success'),
+                'verifyUrl' => $request->session()->get('verifyUrl'),
+            ],
         ];
     }
+
+    
 }

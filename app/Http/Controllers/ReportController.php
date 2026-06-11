@@ -7,6 +7,7 @@ use App\Models\Laporan;
 use  Inertia\Inertia;
 use App\Models\User;
 use App\Models\Mitra;
+use Illuminate\Support\Str;
 
 class ReportController extends Controller
 {
@@ -57,6 +58,12 @@ class ReportController extends Controller
             ]);
         }
 
+    public function pdf($id)
+    {
+        $report = Laporan::findOrFail($id);
+        return Inertia::render('Report/PDF',  ['report' => $report]);
+    }
+
     /**
      * Menyimpan data laporan baru
      */
@@ -69,6 +76,7 @@ class ReportController extends Controller
         'tipe_tiang' => 'required',
         'lokasi' => 'required',
         'jenis_kabel' => 'required',
+        'jumlah_kabel' => 'required',
         'panjang_tiang' => 'required',
         'petugas_lapangan' => 'required|exists:users,id',
         'latitude' => 'required|numeric',
@@ -159,7 +167,8 @@ class ReportController extends Controller
         'status_laporan' => 'required',
         'tipe_tiang' => 'required',
         'lokasi' => 'required',
-         'jenis_kabel' => 'required',
+        'jenis_kabel' => 'required',
+        'jumlah_kabel' => 'required',
         'panjang_tiang' => 'required',
         'petugas_lapangan' => 'required|exists:users,id',
         'latitude' => 'required|numeric',
@@ -195,4 +204,109 @@ public function destroy($id)
 
     return redirect()->back()->with('success', 'Data laporan berhasil dihapus');
 }
+
+ public function generateQrForManajer($id)
+    {
+        $laporan = Laporan::findOrFail($id);
+        $user = auth()->user();
+
+        abort_unless($user->roles->contains('name', 'manajer') || $user->roles->contains('name', 'admin'), 403);
+        abort_if($laporan->isManajerSigned(), 409, 'Manajer already signed.');
+
+        $token = Str::random(64);
+        $laporan->update(['signature_qr_manajer' => $token]);
+
+        return back()->with([
+            'success' => 'QR token generated for Manajer.',
+            'qr_token' => $token,
+        ]);
+    }
+
+ public function generateQrForMitra($id)
+    {
+        $laporan = Laporan::findOrFail($id);
+        $user = auth()->user();
+
+        if ($laporan->isMitraSigned()) {
+            return back()->with('error', 'Laporan sudah ditandatangani Mitra.');
+        }
+
+        if (!$laporan->isManajerSigned()) {
+            return back()->with('error', 'Manajer harus menandatangani terlebih dahulu sebelum Mitra.');
+        }
+
+        // Optional: cek status Selesai
+        // if ($laporan->status_laporan !== 'Selesai') {
+        //     return back()->with('error', 'Laporan harus berstatus Selesai.');
+        // }
+
+        $token = Str::random(64);
+        $laporan->update(['signature_qr_mitra' => $token]);
+
+        return back()->with([
+            'success' => 'QR Code untuk Mitra berhasil dibuat.',
+            'qr_token' => $token,
+        ]);
+    }
+
+    // ─── Mitra signs using the QR token ─────────────────────────────────────
+    public function signMitraWithToken(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string',
+            'report_id' => 'required|exists:report,id',
+            'signature_data' => 'required|string', // base64 drawn signature
+        ]);
+
+        $laporan = Laporan::where('id', $request->report_id)
+            ->where('signature_qr_mitra', $request->token)
+            ->firstOrFail();
+
+        abort_if($laporan->isMitraSigned(), 409, 'Report already signed by Mitra.');
+
+        $laporan->update([
+            'signed_by_mitra' => auth()->id(),
+            'signed_at_mitra' => now(),
+            'signature_data' => $request->signature_data,   // store the drawn signature
+            'signature_qr_mitra' => null,                   // invalidate token after use
+        ]);
+
+        return response()->json(['message' => 'Signed successfully as Mitra']);
+    }
+
+    public function signManajerWithToken(Request $request)
+{
+    $request->validate([
+        'token' => 'required|string',
+        'report_id' => 'required|exists:report,id',
+        'signature_data' => 'required|string',
+    ]);
+
+    $laporan = Laporan::where('id', $request->report_id)
+        ->where('signature_qr_manajer', $request->token)
+        ->firstOrFail();
+
+    abort_if($laporan->isManajerSigned(), 409, 'Already signed by Manajer.');
+
+    $laporan->update([
+        'signed_by_manajer' => auth()->id(),
+        'signed_at_manajer' => now(),
+        'signature_data_manajer' => $request->signature_data,
+        'signature_qr_manajer' => null,
+    ]);
+
+    // After manajer signs, you may automatically generate a QR for mitra? Not required.
+    return response()->json(['message' => 'Manajer signed successfully']);
 }
+
+
+    // ─── (Optional) Verify QR token (for the Mitra signing page) ───────────
+    public function verifyQr(string $token)
+    {
+        $laporan = Laporan::where('signature_qr_mitra', $token)->firstOrFail();
+        return Inertia::render('Report/VerifyQr', [
+            'laporan' => $laporan->only('id', 'nama_mitra', 'tanggal'),
+        ]);
+    }
+}
+
