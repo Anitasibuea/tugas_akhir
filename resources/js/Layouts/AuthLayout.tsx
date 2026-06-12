@@ -105,7 +105,7 @@ export default function AuthenticatedLayout({
                                 flex items-center gap-3 px-4 py-3 rounded-xl
                                 text-sm font-medium transition-all duration-200
                                 ${item.active
-                                    ? "bg-[#28a8e0] text-white shadow-sm"
+                                    ? "bg-[#59BCC8] text-white shadow-sm"
                                     : "text-gray-600 hover:bg-gray-100"
                                 }
                             `}
