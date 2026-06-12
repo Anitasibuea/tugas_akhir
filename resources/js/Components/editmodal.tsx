@@ -26,7 +26,7 @@ type User = {
 
 type Mitra = {
     id: number;
-    name: string;
+    nama_perusahaan: string;
 };
 
 type Report = {
@@ -62,7 +62,7 @@ type FormState = {
     jenis_kabel: string;
     jumlah_kabel: string,
     panjang_tiang: string;
-    petugas_lapangan: number | "";
+    petugas_lapangan: string;
     latitude: number | "";
     longitude: number | "";
     nama_mitra: string;
@@ -106,12 +106,12 @@ export default function EditReportModal({
                 jenis_kabel: report.jenis_kabel,
                 jumlah_kabel: report.jumlah_kabel,
                 panjang_tiang: report.panjang_tiang,
-                petugas_lapangan: report.petugas_lapangan ? Number(report.petugas_lapangan) : "",
-                latitude: report.latitude || "",
-                longitude: report.longitude || "",
+                petugas_lapangan: report.petugas_lapangan,
+                latitude: report.latitude,
+                longitude: report.longitude,
                 nama_mitra: report.nama_mitra,
             });
-            
+
             if (report.latitude && report.longitude) {
                 setSelected([report.latitude, report.longitude]);
             }
@@ -142,15 +142,15 @@ export default function EditReportModal({
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
-        
+
         // Validate required fields
         if (!form.tanggal || !form.status_laporan || !form.nama_mitra || !form.petugas_lapangan || !form.tipe_tiang || !form.deskripsi) {
             alert("Mohon lengkapi semua field yang diperlukan");
             return;
         }
-        
+
         setIsSubmitting(true);
-        
+
         // Use PUT request for update
         router.put(`/dashboard/report/${report?.id}`, form, {
             preserveScroll: true,
@@ -224,7 +224,7 @@ export default function EditReportModal({
         <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-screen items-center justify-center p-4">
                 {/* Backdrop */}
-                <div 
+                <div
                     className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
                     onClick={onClose}
                 />
@@ -294,8 +294,8 @@ export default function EditReportModal({
                                             >
                                                 <option value="">Pilih Nama Mitra</option>
                                                 {mitraUsers.map((mitra) => (
-                                                    <option key={mitra.id} value={mitra.id.toString()}>
-                                                        {mitra.name}
+                                                    <option key={mitra.id} value={mitra.nama_perusahaan}>
+                                                        {mitra.nama_perusahaan}
                                                     </option>
                                                 ))}
                                             </select>
@@ -308,7 +308,7 @@ export default function EditReportModal({
                                                 onChange={(e) =>
                                                     setForm({
                                                         ...form,
-                                                        petugas_lapangan: e.target.value ? Number(e.target.value) : "",
+                                                        petugas_lapangan: e.target.value
                                                     })
                                                 }
                                                 className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
@@ -316,7 +316,7 @@ export default function EditReportModal({
                                             >
                                                 <option value="">Pilih Petugas Lapangan</option>
                                                 {petugasUsers.map((user) => (
-                                                    <option key={user.id} value={user.id}>
+                                                    <option key={user.id} value={user.name}>
                                                         {user.name}
                                                     </option>
                                                 ))}
@@ -354,43 +354,43 @@ export default function EditReportModal({
                                             </select>
                                         </div>
                                     </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                     <div>
-                                        <label className="text-sm font-medium text-gray-700">Jenis kabel</label>
-                                        <select
-                                            value={form.jenis_kabel}
-                                            onChange={(e) =>
-                                                setForm({ ...form, jenis_kabel: e.target.value })
-                                            }
-                                            className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
-                                            required
-                                        >
-                                            <option value="">Jenis kabel</option>
-                                            <option value="Fiber Optik">Fiber Optik</option>
-                                            <option value="Listrik">Listrik</option>
-                                        </select>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-700">Jenis kabel</label>
+                                            <select
+                                                value={form.jenis_kabel}
+                                                onChange={(e) =>
+                                                    setForm({ ...form, jenis_kabel: e.target.value })
+                                                }
+                                                className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
+                                                required
+                                            >
+                                                <option value="">Jenis kabel</option>
+                                                <option value="Fiber Optik">Fiber Optik</option>
+                                                <option value="Listrik">Listrik</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-700">Panjang Tiang</label>
+                                            <input
+                                                type="text"
+                                                value={form.panjang_tiang}
+                                                onChange={(e) => setForm({ ...form, panjang_tiang: e.target.value })}
+                                                className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-700">Jumlah Kabel</label>
+                                            <input
+                                                type="text"
+                                                value={form.jumlah_kabel}
+                                                onChange={(e) => setForm({ ...form, jumlah_kabel: e.target.value })}
+                                                className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
+                                                required
+                                            />
+                                        </div>
                                     </div>
-                                   <div>
-                                 <label className="text-sm font-medium text-gray-700">Panjang Tiang</label>
-                                        <input
-                                        type="text"
-                                        value={form.panjang_tiang || ''}   // ← diubah ke string (pastikan state ini string)
-                                        onChange={(e) => setForm({ ...form, panjang_tiang: e.target.value })}
-                                     className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
-                                        required
-                                              />
-                                            </div>
-                                              <div>
-                                 <label className="text-sm font-medium text-gray-700">Jumlah Kabel</label>
-                                        <input
-                                        type="text"
-                                        value={form.jumlah_kabel || ''}   // ← diubah ke string (pastikan state ini string)
-                                        onChange={(e) => setForm({ ...form, jumlah_kabel: e.target.value })}
-                                     className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
-                                        required
-                                              />
-                                            </div>
-                                </div>  
                                     {/* Deskripsi */}
                                     <div>
                                         <label className="text-sm font-medium text-gray-700">Deskripsi</label>
@@ -459,8 +459,8 @@ export default function EditReportModal({
                                 {/* MAP */}
                                 <div className="h-[400px] rounded-2xl overflow-hidden border border-gray-300">
                                     <MapContainer
-                                        center={form.latitude && form.longitude ? 
-                                            [Number(form.latitude), Number(form.longitude)] : 
+                                        center={form.latitude && form.longitude ?
+                                            [Number(form.latitude), Number(form.longitude)] :
                                             [-6.200000, 106.816666]
                                         }
                                         zoom={13}

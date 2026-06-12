@@ -1,191 +1,107 @@
-import { useEffect, useRef, useState } from "react";
-import { router } from "@inertiajs/react";
-import QRCode from "qrcode";
+import { QrCodeIcon } from "@heroicons/react/24/solid";
 
 interface Props {
     isOpen: boolean;
     onClose: () => void;
+    onConfirm: () => void;
     report: {
         id: number | string;
-        signature_qr_token?: string | null;
         role?: "manajer" | "mitra" | null;
     } | null;
+    isLoading?: boolean;
 }
 
-export default function TandatanganiModal({ isOpen, onClose, report }: Props) {
-    const canvasQrRef = useRef<HTMLCanvasElement>(null);
-    const canvasSignatureRef = useRef<HTMLCanvasElement>(null);
-    const [isDrawing, setIsDrawing] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
-    const [signatureBase64, setSignatureBase64] = useState<string | null>(null);
-
-    // Draw QR code when token is available
-    useEffect(() => {
-        if (!isOpen || !report?.signature_qr_token || !canvasQrRef.current) return;
-        const verifyUrl = `${window.location.origin}/dashboard/report/verify/${report.signature_qr_token}`;
-        QRCode.toCanvas(canvasQrRef.current, verifyUrl, {
-            width: 200,
-            margin: 2,
-            color: { dark: "#1e293b", light: "#ffffff" },
-        });
-    }, [isOpen, report?.signature_qr_token]);
-
-    // Setup signature canvas when modal opens
-    useEffect(() => {
-        if (!isOpen || !canvasSignatureRef.current) return;
-        const canvas = canvasSignatureRef.current;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        canvas.width = 400;
-        canvas.height = 200;
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = "#64748b";
-        ctx.lineWidth = 2;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        // Clear any previous signature
-        setSignatureBase64(null);
-    }, [isOpen]);
-
-    // Drawing logic
-    const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-        setIsDrawing(true);
-        const canvas = canvasSignatureRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        const rect = canvas.getBoundingClientRect();
-        const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
-        const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
-        const x = clientX - rect.left;
-        const y = clientY - rect.top;
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-    };
-
-    const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-        if (!isDrawing) return;
-        const canvas = canvasSignatureRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        const rect = canvas.getBoundingClientRect();
-        const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
-        const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
-        const x = clientX - rect.left;
-        const y = clientY - rect.top;
-        ctx.lineTo(x, y);
-        ctx.stroke();
-    };
-
-    const stopDrawing = () => {
-        setIsDrawing(false);
-        const canvas = canvasSignatureRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        ctx.closePath();
-        // Save signature as base64
-        setSignatureBase64(canvas.toDataURL());
-    };
-
-    const clearSignature = () => {
-        const canvas = canvasSignatureRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        setSignatureBase64(null);
-    };
-
-    const handleSubmit = () => {
-        if (!report || !signatureBase64) {
-            alert("Harap tanda tangani terlebih dahulu.");
-            return;
-        }
-        setSubmitting(true);
-        const endpoint = report.role === "manajer" ? route("reports.signManajer") : route("reports.signMitra");
-        router.post(
-            endpoint,
-            {
-                token: report.signature_qr_token,
-                report_id: report.id,
-                signature_data: signatureBase64,
-            },
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    onClose();
-                },
-                onError: (errors) => {
-                    console.error(errors);
-                    alert("Gagal menandatangani. Mungkin token sudah kadaluarsa.");
-                    setSubmitting(false);
-                },
-            }
-        );
-    };
-
+export default function TandatanganiModal({ isOpen, onClose, onConfirm, report, isLoading = false }: Props) {
     if (!isOpen || !report) return null;
+
+    const roleName = report.role === "manajer" ? "Manajer" : "Mitra";
+    const roleColor = report.role === "manajer" ? "indigo" : "violet";
+
+    const colorMap = {
+        indigo: {
+            iconBg: "bg-indigo-50",
+            iconText: "text-indigo-600",
+            border: "border-indigo-100",
+            btn: "bg-indigo-600 hover:bg-indigo-700",
+        },
+        violet: {
+            iconBg: "bg-violet-50",
+            iconText: "text-violet-600",
+            border: "border-violet-100",
+            btn: "bg-violet-600 hover:bg-violet-700",
+        },
+    };
+
+    const c = colorMap[roleColor];
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
+                {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-                    <h2 className="text-lg font-semibold text-slate-800">
-                        Tanda Tangan {report.role === "manajer" ? "Manajer" : "Mitra"}
+                    <h2 className="text-base font-semibold text-slate-800">
+                        Generate QR — {roleName}
                     </h2>
-                    <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 transition">
+                    <button
+                        onClick={onClose}
+                        disabled={isLoading}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 transition disabled:opacity-40"
+                    >
                         ✕
                     </button>
                 </div>
 
-                <div className="px-6 py-4 space-y-4">
-                    {/* QR Code */}
-                    <div className="flex flex-col items-center">
-                        <p className="text-sm text-slate-600 mb-2">Scan QR ini untuk verifikasi:</p>
-                        <canvas ref={canvasQrRef} className="border border-slate-200 rounded-lg p-2 bg-white" />
-                        <p className="text-xs text-slate-400 mt-1">Simpan QR ini atau tunjukkan ke petugas</p>
+                {/* Body */}
+                <div className="px-6 py-6 flex flex-col items-center gap-4 text-center">
+                    <div className={`w-16 h-16 rounded-full ${c.iconBg} flex items-center justify-center`}>
+                        <QrCodeIcon className={`w-8 h-8 ${c.iconText}`} />
                     </div>
 
-                    {/* Signature Pad */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Tanda Tangan Digital</label>
-                        <div className="border border-slate-300 rounded-lg overflow-hidden bg-white">
-                            <canvas
-                                ref={canvasSignatureRef}
-                                onMouseDown={startDrawing}
-                                onMouseMove={draw}
-                                onMouseUp={stopDrawing}
-                                onMouseLeave={stopDrawing}
-                                onTouchStart={startDrawing}
-                                onTouchMove={draw}
-                                onTouchEnd={stopDrawing}
-                                style={{ width: "100%", height: "auto", cursor: "crosshair" }}
-                            />
-                        </div>
-                        <button
-                            type="button"
-                            onClick={clearSignature}
-                            className="mt-1 text-xs text-slate-500 hover:text-red-600 underline"
-                        >
-                            Hapus Tanda Tangan
-                        </button>
+                        <p className="text-sm font-medium text-slate-800 mb-1">
+                            Buat QR Code untuk Laporan #{report.id}?
+                        </p>
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                            QR Code akan dikirim ke <span className="font-medium text-slate-700">{roleName}</span> untuk
+                            ditandatangani secara digital. Pastikan data laporan sudah lengkap sebelum melanjutkan.
+                        </p>
+                    </div>
+
+                    <div className={`w-full rounded-xl border ${c.border} bg-slate-50 px-4 py-3 text-left`}>
+                        <p className="text-xs text-slate-500 mb-0.5">Langkah selanjutnya</p>
+                        <p className="text-xs text-slate-700">
+                            {report.role === "manajer"
+                                ? "Setelah QR di-generate, Manajer dapat memindai dan menandatangani laporan."
+                                : "Setelah QR di-generate, Mitra dapat memindai dan menandatangani laporan."}
+                        </p>
                     </div>
                 </div>
 
+                {/* Footer */}
                 <div className="flex justify-end gap-2 px-6 py-4 border-t border-slate-100">
-                    <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 transition">
+                    <button
+                        onClick={onClose}
+                        disabled={isLoading}
+                        className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 transition disabled:opacity-40"
+                    >
                         Batal
                     </button>
                     <button
-                        onClick={handleSubmit}
-                        disabled={submitting || !signatureBase64}
-                        className="px-5 py-2 text-sm font-medium bg-violet-600 text-white rounded-xl hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                        onClick={onConfirm}
+                        disabled={isLoading}
+                        className={`px-5 py-2 text-sm font-medium ${c.btn} text-white rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-2`}
                     >
-                        {submitting ? "Memproses..." : "Tandatangani"}
+                        {isLoading ? (
+                            <>
+                                <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                                Memproses...
+                            </>
+                        ) : (
+                            <>
+                                <QrCodeIcon className="w-4 h-4" />
+                                Generate QR
+                            </>
+                        )}
                     </button>
                 </div>
             </div>

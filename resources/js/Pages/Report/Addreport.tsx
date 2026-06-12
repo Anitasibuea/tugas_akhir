@@ -28,7 +28,7 @@ type User = {
 
 type Mitra = {
     id: number;
-    name: string;
+    nama_perusahaan: string;
 };
 
 type Report = {
@@ -66,31 +66,31 @@ type FormState = {
     petugas_lapangan: number | "";
     latitude: number | "";
     longitude: number | "";
-    nama_mitra: string;
+    nama_mitra: number | "";
     foto: File | null;
 };
 
 const statusConfig: Record<string, { label: string; color: string; dot: string }> = {
-    Pending:  { label: "Pending",  color: "bg-amber-100 text-amber-700 border-amber-200",   dot: "bg-amber-400" },
-    Proses:   { label: "Proses",   color: "bg-blue-100 text-blue-700 border-blue-200",      dot: "bg-blue-400" },
-    Selesai:  { label: "Selesai",  color: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-400" },
+    Pending: { label: "Pending", color: "bg-amber-100 text-amber-700 border-amber-200", dot: "bg-amber-400" },
+    Proses: { label: "Proses", color: "bg-blue-100 text-blue-700 border-blue-200", dot: "bg-blue-400" },
+    Selesai: { label: "Selesai", color: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-400" },
 };
 
 // Component to handle map center and fly to location
 function MapController({ center, zoom }: { center: LatLngExpression; zoom: number }) {
     const map = useMap();
-    
+
     useState(() => {
         map.setView(center, zoom);
     });
-    
+
     return null;
 }
 
 // Component to get user's current location on mount
 function CurrentLocationOnMount({ onLocationFound }: { onLocationFound: (lat: number, lng: number) => void }) {
     const map = useMap();
-    
+
     useState(() => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -103,8 +103,8 @@ function CurrentLocationOnMount({ onLocationFound }: { onLocationFound: (lat: nu
                 (error) => {
                     console.error("Error getting location:", error);
                     //
-                    
-                     
+
+
                     map.setView([-6.200000, 106.816666], 13);
                 },
                 { enableHighAccuracy: true }
@@ -114,7 +114,7 @@ function CurrentLocationOnMount({ onLocationFound }: { onLocationFound: (lat: nu
             map.setView([-6.200000, 106.816666], 13);
         }
     });
-    
+
     return null;
 }
 
@@ -178,15 +178,15 @@ export default function Reports({
                 alert("Format file harus JPG, JPEG, PNG, atau WEBP");
                 return;
             }
-            
+
             // Validate file size (max 5MB)
             if (file.size > 5 * 1024 * 1024) {
                 alert("Ukuran file maksimal 5MB");
                 return;
             }
-            
+
             setForm({ ...form, foto: file });
-            
+
             // Create preview
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -198,19 +198,31 @@ export default function Reports({
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
-        
+
+        console.log("Form data:", {
+            tanggal: form.tanggal,
+            status_laporan: form.status_laporan,
+            nama_mitra: form.nama_mitra,
+            petugas_lapangan: form.petugas_lapangan,
+            tipe_tiang: form.tipe_tiang,
+            deskripsi: form.deskripsi,
+            foto: form.foto,
+            latitude: form.latitude,
+            longitude: form.longitude,
+        });
+
         // Validate required fields
         if (!form.tanggal || !form.status_laporan || !form.nama_mitra || !form.petugas_lapangan || !form.tipe_tiang || !form.deskripsi) {
             alert("Mohon lengkapi semua field yang diperlukan");
             return;
         }
-        
+
         // Validate file upload
         if (!form.foto) {
             alert("Mohon upload foto laporan");
             return;
         }
-        
+
         // Create FormData for file upload
         const formData = new FormData();
         formData.append("tanggal", form.tanggal);
@@ -224,11 +236,11 @@ export default function Reports({
         formData.append("petugas_lapangan", form.petugas_lapangan.toString());
         formData.append("latitude", form.latitude.toString());
         formData.append("longitude", form.longitude.toString());
-        formData.append("nama_mitra", form.nama_mitra);
+        formData.append("nama_mitra", form.nama_mitra.toString());
         if (form.foto) {
             formData.append("foto", form.foto);
         }
-        
+
         router.post("/dashboard/report", formData, {
             headers: {
                 "Content-Type": "multipart/form-data",
@@ -239,8 +251,8 @@ export default function Reports({
                     deskripsi: "",
                     status_laporan: "",
                     tipe_tiang: "",
-                    jenis_kabel:"",
-                    jumlah_kabel:"",
+                    jenis_kabel: "",
+                    jumlah_kabel: "",
                     lokasi: "",
                     panjang_tiang: "",
                     petugas_lapangan: "",
@@ -274,32 +286,32 @@ export default function Reports({
             alert("Geolocation tidak didukung perangkat ini");
             return;
         }
-        
+
         setGettingLocation(true);
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
-                
+
                 // Update selected marker
                 setSelected([lat, lng]);
-                
+
                 // Update map center and zoom
                 setMapCenter([lat, lng]);
                 setMapZoom(15);
-                
+
                 // If map is available, fly to location
                 if (mapRef.current) {
                     mapRef.current.setView([lat, lng], 15);
                 }
-                
+
                 // Reverse geocode to get address
                 await reverseGeocode(lat, lng);
                 setGettingLocation(false);
             },
             (error) => {
                 let errorMessage = "Gagal mendapatkan lokasi: ";
-                switch(error.code) {
+                switch (error.code) {
                     case error.PERMISSION_DENIED:
                         errorMessage += "Izin lokasi ditolak. Silakan izinkan akses lokasi.";
                         break;
@@ -354,7 +366,7 @@ export default function Reports({
                         {/* LEFT SIDE - FORM */}
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                             <h2 className="text-xl font-semibold mb-6">Buat Laporan</h2>
-                            
+
                             <form onSubmit={submit} className="space-y-5">
                                 {/* Tanggal + Status */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -390,24 +402,27 @@ export default function Reports({
 
                                 {/* Nama Mitra + Petugas */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                   <div>
-    <label className="text-sm font-medium text-gray-700">Nama Mitra</label>
-    <select
-        value={form.nama_mitra}
-        onChange={(e) =>
-            setForm({ ...form, nama_mitra: e.target.value })
-        }
-        className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none text-gray-900"
-        required
-    >
-        <option value="" className="text-gray-900">Pilih Nama Mitra</option>
-        {mitraUsers.map((mitra) => (
-            <option key={mitra.id} value={mitra.id} className="text-gray-900">
-                {mitra.name}
-            </option>
-        ))}
-    </select>
-</div>
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700">Nama Mitra</label>
+                                        <select
+                                            value={form.nama_mitra}
+                                            onChange={(e) =>
+                                                setForm({
+                                                    ...form,
+                                                    nama_mitra: e.target.value ? Number(e.target.value) : ""
+                                                })
+                                            }
+                                            className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none text-gray-900 bg-white"
+                                            required
+                                        >
+                                            <option value="" className="text-gray-900 bg-white">Pilih Nama Mitra</option>
+                                            {mitraUsers.map((mitra) => (
+                                                <option key={mitra.id} value={mitra.id} className="text-gray-900 bg-white">
+                                                    {mitra.nama_perusahaan}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                     <div>
                                         <label className="text-sm font-medium text-gray-700">Petugas Lapangan</label>
                                         <select
@@ -418,12 +433,12 @@ export default function Reports({
                                                     petugas_lapangan: e.target.value ? Number(e.target.value) : "",
                                                 })
                                             }
-                                            className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
+                                            className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none text-gray-900 bg-white"
                                             required
                                         >
-                                            <option value="">Pilih Petugas Lapangan</option>
+                                            <option value="" className="text-gray-900 bg-white">Pilih Petugas Lapangan</option>
                                             {petugasUsers.map((user) => (
-                                                <option key={user.id} value={user.id}>
+                                                <option key={user.id} value={user.id} className="text-gray-900 bg-white">
                                                     {user.name}
                                                 </option>
                                             ))}
@@ -462,7 +477,7 @@ export default function Reports({
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                     <div>
+                                    <div>
                                         <label className="text-sm font-medium text-gray-700">Jenis kabel</label>
                                         <select
                                             value={form.jenis_kabel}
@@ -477,26 +492,26 @@ export default function Reports({
                                             <option value="Listrik">Listrik</option>
                                         </select>
                                     </div>
-                                   <div>
-                                 <label className="text-sm font-medium text-gray-700">Panjang Tiang</label>
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700">Panjang Tiang</label>
                                         <input
-                                        type="text"
-                                        value={form.panjang_tiang || ''}   // ← diubah ke string (pastikan state ini string)
-                                        onChange={(e) => setForm({ ...form, panjang_tiang: e.target.value })}
-                                     className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
-                                        required
-                                              />
-                                            </div>
-                                               <div>
-                                 <label className="text-sm font-medium text-gray-700">Jumlah Kabel</label>
+                                            type="text"
+                                            value={form.panjang_tiang || ''}   // ← diubah ke string (pastikan state ini string)
+                                            onChange={(e) => setForm({ ...form, panjang_tiang: e.target.value })}
+                                            className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700">Jumlah Kabel</label>
                                         <input
-                                        type="text"
-                                        value={form.jumlah_kabel || ''}   // ← diubah ke string (pastikan state ini string)
-                                        onChange={(e) => setForm({ ...form, jumlah_kabel: e.target.value })}
-                                     className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
-                                        required
-                                              />
-                                            </div>
+                                            type="text"
+                                            value={form.jumlah_kabel || ''}   // ← diubah ke string (pastikan state ini string)
+                                            onChange={(e) => setForm({ ...form, jumlah_kabel: e.target.value })}
+                                            className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
+                                            required
+                                        />
+                                    </div>
                                 </div>
 
 
@@ -507,9 +522,9 @@ export default function Reports({
                                         <div className="space-y-2 text-center">
                                             {previewImage ? (
                                                 <div className="space-y-3">
-                                                    <img 
-                                                        src={previewImage} 
-                                                        alt="Preview" 
+                                                    <img
+                                                        src={previewImage}
+                                                        alt="Preview"
                                                         className="mx-auto h-48 w-auto object-cover rounded-lg shadow-md"
                                                     />
                                                     <button

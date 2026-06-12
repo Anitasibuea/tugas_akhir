@@ -86,20 +86,19 @@ Route::middleware(['auth'])
                 Route::delete('/{id}', 'destroy')
                     ->middleware('role:admin')
                     ->name('destroy');
-                
-                 Route::post('/sign/manajer', 'signManajerWithToken')
+
+                Route::post('/sign/manajer', 'signManajerWithToken')
                     ->middleware('role:manajer|mitra')
                     ->name('signManajer');
                 Route::post('/sign/mitra', 'signMitraWithToken')
                     ->middleware('role:manajer|mitra')
                     ->name('signMitra');
 
-                // GENERATE QR - hanya manajer/admin yang boleh generate
                 Route::post('/{id}/generate-qr-manajer', 'generateQrForManajer')
-                    ->middleware('role:manajer|admin')
+                    ->middleware('role:manajer|mitra')
                     ->name('generateQrManajer');
                 Route::post('/{id}/generate-qr-mitra', 'generateQrForMitra')
-                    ->middleware('role:manajer|admin')
+                    ->middleware('role:manajer|mitra')
                     ->name('generateQrMitra');
 
                 // Verifikasi QR (bisa diakses publik dengan token)
@@ -108,20 +107,20 @@ Route::middleware(['auth'])
             });
     });
 
-    Route::middleware(['auth', 'role:admin|manajer'])
-        ->prefix('dashboard')
-        ->group(function(){
+Route::middleware(['auth', 'role:admin|manajer'])
+    ->prefix('dashboard')
+    ->group(function () {
 
         Route::controller(MitraController::class)
-        ->name('mitra.')
-        ->group(function() {
-        Route::get('/mitra', 'index')->name('index');
-        Route::get('/mitra/add', 'index2')->name('add');
-        Route::post('/mitra', 'store')->name('store');
-        Route::put('/mitra/{id}','update')->name('update');
-        Route::delete('/mitra/{id}','destroy')->name('destroy');
-        });
-        });
+            ->name('mitra.')
+            ->group(function () {
+                Route::get('/mitra', 'index')->name('index');
+                Route::get('/mitra/add', 'index2')->name('add');
+                Route::post('/mitra', 'store')->name('store');
+                Route::put('/mitra/{id}', 'update')->name('update');
+                Route::delete('/mitra/{id}', 'destroy')->name('destroy');
+            });
+    });
 
 
 
@@ -148,4 +147,4 @@ Route::middleware([
     Route::resource('users', UserController::class);
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

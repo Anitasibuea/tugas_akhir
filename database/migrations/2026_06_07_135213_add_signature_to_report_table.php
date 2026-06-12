@@ -13,10 +13,12 @@ return new class extends Migration
     {
         Schema::table('report', function (Blueprint $table) {
             //
-            $table->foreignId('signed_by')->nullable()->constrained('users');
-            $table->text('signature_data')->nullable();    // base64 drawn signature
-            $table->string('signature_qr_token')->nullable()->unique(); // QR token
-            $table->timestamp('signed_at')->nullable();
+            $table->foreignId('signed_by_manajer')->nullable()->constrained('users');
+            $table->string('signature_qr_manajer')->nullable()->unique(); // QR token
+            $table->timestamp('signed_at_manajer')->nullable();
+            $table->foreignId('signed_by_mitra')->nullable()->constrained('users');
+            $table->string('signature_qr_mitra')->nullable()->unique(); // QR token
+            $table->timestamp('signed_at_mitra')->nullable();
         });
     }
 

@@ -5,7 +5,7 @@ import { PageProps } from "@/types";
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 interface Report {
-    id: number;
+    id: number | string;
     tanggal: string;
     lokasi: string;
     latitude: number;
@@ -16,16 +16,22 @@ interface Report {
     petugas_lapangan: string;
     deskripsi?: string;
     foto?: string;
-    signed_by?: number | null;
-    signature_data?: string | null;
-    signature_qr_token?: string | null;
-    signed_at?: string | null;
     panjang_tiang?: string;
     jenis_kabel?: string;
+    jumlah_kabel?: string;
+    // Manajer signature fields
+    signed_by_manajer?: number | null;
+    signed_at_manajer?: string | null;
+    signature_qr_manajer?: string | null;
+    // Mitra signature fields
+    signed_by_mitra?: number | null;
+    signed_at_mitra?: string | null;
+    signature_qr_mitra?: string | null;
 }
 
 interface Props extends PageProps {
     report: Report;
+    manajerName: string; // ← add
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -35,10 +41,10 @@ const BULAN = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni",
     "Juli", "Agustus", "September", "Oktober", "November", "Desember",
 ] as const;
-const ROMAN_MONTH = ["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"] as const;
+const ROMAN_MONTH = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"] as const;
 
 function angkaKeTeks(num: number): string {
-    const satuan = ["","Satu","Dua","Tiga","Empat","Lima","Enam","Tujuh","Delapan","Sembilan","Sepuluh","Sebelas"];
+    const satuan = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
     if (num <= 11) return satuan[num];
     if (num < 20) return angkaKeTeks(num - 10) + " Belas";
     if (num < 100) {
@@ -50,10 +56,13 @@ function angkaKeTeks(num: number): string {
 }
 
 function tahunKeTeks(year: number): string {
-    if (year === 2026) return "Dua Ribu Dua Puluh Enam";
     const ribu = Math.floor(year / 1000);
-    const sisa = year % 1000;
-    return angkaKeTeks(ribu) + " Ribu " + angkaKeTeks(sisa);
+    const ratus = Math.floor((year % 1000) / 100);
+    const puluhan = year % 100;
+    let result = angkaKeTeks(ribu) + " Ribu";
+    if (ratus > 0) result += " " + angkaKeTeks(ratus) + " Ratus";
+    if (puluhan > 0) result += " " + angkaKeTeks(puluhan);
+    return result.trim();
 }
 
 function parseTanggal(dateStr: string) {
@@ -80,7 +89,12 @@ function buildNomorSurat(mitra: string, id: string | number, year: number, month
     return `BA-PLN/${mitraSlug}/${ROMAN_MONTH[monthIndex]}/${year}/${seq}`;
 }
 
-// ─── Real QR Code Component using 'qrcode' ─────────────────────────────────
+function formatTanggalId(isoString: string): string {
+    const date = new Date(isoString);
+    return date.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
+}
+
+// ─── QR Code Component ──────────────────────────────────────────────────────
 
 interface QRCodeRealProps {
     text: string;
@@ -95,10 +109,7 @@ const QRCodeReal: React.FC<QRCodeRealProps> = ({ text, size = 68 }) => {
         QRCode.toCanvas(canvasRef.current, text, {
             width: size,
             margin: 1,
-            color: {
-                dark: "#0f172a", // dark slate
-                light: "#ffffff",
-            },
+            color: { dark: "#0f172a", light: "#ffffff" },
         }, (error) => {
             if (error) console.error("QR generation failed:", error);
         });
@@ -107,27 +118,120 @@ const QRCodeReal: React.FC<QRCodeRealProps> = ({ text, size = 68 }) => {
     return <canvas ref={canvasRef} width={size} height={size} style={{ width: size, height: size }} />;
 };
 
-// ─── Main Component ────────────────────────────────────────────────────────
+// ─── Signature Block Component ──────────────────────────────────────────────
 
-export default function BeritaAcaraPDF({ report }: Props) {
+interface SignatureBlockProps {
+    title: string;
+    subtitle: string;
+    name: string;
+    role: string;
+    qrText: string;
+    signedAt?: string | null;
+    badgeColor: "blue" | "violet";
+}
+
+const SignatureBlock: React.FC<SignatureBlockProps> = ({
+    title, subtitle, name, role, qrText, signedAt, badgeColor,
+}) => {
+
+    return (
+        <div className="flex flex-col items-center gap-1.5">
+            <div className="text-center">
+                <div className="font-bold text-[11px]">{title}</div>
+                <div className="text-[9px] text-slate-500 uppercase">{subtitle}</div>
+            </div>
+            <div className="relative w-28 h-28 border border-slate-200 rounded bg-white p-1 flex items-center justify-center">
+                {qrText ? (
+                    <QRCodeReal text={qrText} size={100} />
+                ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-slate-300">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
+                            <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="4" height="4" rx="0.5" />
+                            <rect x="19" y="19" width="2" height="2" rx="0.5" />
+                        </svg>
+                        <span className="text-[8px] font-mono text-slate-400 text-center leading-tight">Belum<br />Ditandatangani</span>
+                    </div>
+                )}
+            </div>
+            <div className="text-center mt-1">
+                <div className="font-bold text-[11px] underline">{name.toUpperCase()}</div>
+                <div className="text-[9px] text-slate-500">{role}</div>
+                {signedAt && (
+                    <div className="text-[8px] text-slate-400 font-mono mt-0.5">
+                        {formatTanggalId(signedAt)}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// ─── Main Component ─────────────────────────────────────────────────────────
+
+export default function BeritaAcaraPDF({ report, manajerName }: Props) {
     const date = parseTanggal(report.tanggal);
     const nomorSurat = buildNomorSurat(report.nama_mitra, report.id, date.year, date.monthIndex);
 
-    const displayStatus = report.signed_by ? "Selesai" : "Dalam Proses";
-    const statusClass = {
-        Selesai: "bg-green-100 text-green-800 border border-green-300",
-        "Dalam Proses": "bg-amber-100 text-amber-800 border border-amber-300",
-        Ditunda: "bg-red-100 text-red-800 border border-red-300",
-    }[displayStatus];
+    // Signature state
+    const manajerSigned = !!report.signed_by_manajer;
+    const mitraSigned = !!report.signed_by_mitra;
+    const bothSigned = manajerSigned && mitraSigned;
 
+    const displayStatus = bothSigned
+        ? "Selesai"
+        : manajerSigned
+            ? "Menunggu TTD Mitra"
+            : "Dalam Proses";
+
+    const statusClass: Record<string, string> = {
+        "Selesai": "bg-green-100 text-green-800 border border-green-300",
+        "Menunggu TTD Mitra": "bg-blue-100 text-blue-800 border border-blue-300",
+        "Dalam Proses": "bg-amber-100 text-amber-800 border border-amber-300",
+    };
+
+    // Build QR text — use real verify URL if token exists, fall back to signed/pending label
+    const verifyBase = typeof window !== "undefined" ? window.location.origin : "";
+
+    const qrTextManajer = report.signature_qr_manajer
+        ? `${verifyBase}/dashboard/report/verify/${report.signature_qr_manajer}`
+        : null;
+    // : manajerSigned
+    //     ? `SIGNED:PLN-MANAJER-${report.id}`
+    //     : `PENDING:PLN-MANAJER-${report.id}`;
+
+    const qrTextMitra = report.signature_qr_mitra
+        ? `${verifyBase}/dashboard/report/verify/${report.signature_qr_mitra}`
+        // : mitraSigned
+        //     ? `SIGNED:${report.nama_mitra.toUpperCase()}-${report.id}`
+        //     : `PENDING:${report.nama_mitra.toUpperCase()}-${report.id}`;
+        : null;
+
+    // Table rows
     const tableRows = [
-        { no: 1, label: "ID Registrasi Lapangan", value: <span className="font-mono font-bold tracking-tight">{report.id}</span> },
-        { no: 2, label: "Tanggal Pelaporan / Verifikasi", value: `${date.dayNum} ${date.monthName} ${date.year}` },
-        { no: 3, label: "Lokasi Penempatan Tiang", value: <strong>{report.lokasi}</strong> },
+        {
+            no: 1,
+            label: "ID Registrasi Lapangan",
+            value: <span className="font-mono font-bold tracking-tight">{report.id}</span>,
+        },
+        {
+            no: 2,
+            label: "Tanggal Pelaporan / Verifikasi",
+            value: `${date.dayNum} ${date.monthName} ${date.year}`,
+        },
+        {
+            no: 3,
+            label: "Lokasi Penempatan Tiang",
+            value: <strong>{report.lokasi}</strong>,
+        },
         {
             no: 4,
             label: "Koordinat Lokasi (GPS)",
-            value: <span className="font-mono text-[10px]">Latitude: {report.latitude} | Longitude: {report.longitude}</span>,
+            value: (
+                <span className="font-mono text-[10px]">
+                    Latitude: {report.latitude} | Longitude: {report.longitude}
+                </span>
+            ),
         },
         {
             no: 5,
@@ -150,48 +254,40 @@ export default function BeritaAcaraPDF({ report }: Props) {
         },
         {
             no: 8,
+            label: "Jumlah Kabel",
+            value: <em>{report.jumlah_kabel || "Data tidak tersedia"}</em>,
+        },
+        {
+            no: 9,
             label: "Status Akhir Pekerjaan",
             value: (
-                <span className={`inline-block px-2 py-0.5 rounded text-[9.5px] font-bold tracking-wide font-mono ${statusClass}`}>
+                <span className={`inline-block px-2 py-0.5 rounded text-[9.5px] font-bold tracking-wide font-mono ${statusClass[displayStatus] ?? "bg-slate-100 text-slate-700"}`}>
                     {displayStatus.toUpperCase()}
                 </span>
             ),
         },
     ];
 
-    const handlePrint = () => {
-        window.print();
-    };
-
-    // QR data strings
-    const qrTextPln = `VERIFIED:PTPLN-${report.id}`;
-    const qrTextMitra = `VERIFIED:${report.nama_mitra.toUpperCase()}-${report.petugas_lapangan}-${report.id}-${displayStatus}`;
-
     return (
         <>
-            <style>
-                {`
-                    @media print {
-                        .laravel-debugbar, #laravel-debugbar, .debug-bar, [class*="debugbar"], [class*="DebugBar"] {
-                            display: none !important;
-                        }
-                        @page {
-                            margin: 0.5cm;
-                        }
-                        body {
-                            margin: 0;
-                        }
-                        .print-hide {
-                            display: none !important;
-                        }
+            <style>{`
+                @media print {
+                    .laravel-debugbar, #laravel-debugbar, .debug-bar,
+                    [class*="debugbar"], [class*="DebugBar"] {
+                        display: none !important;
                     }
-                `}
-            </style>
+                    @page { margin: 0.5cm; }
+                    body { margin: 0; }
+                    .print-hide { display: none !important; }
+                }
+            `}</style>
+
             <div className="font-['Georgia',serif] text-slate-800 text-xs bg-slate-100 py-8 print:bg-white">
-                {/* Print Button - only on screen */}
+
+                {/* Print Button */}
                 <div className="print:hidden flex justify-end max-w-[595px] mx-auto mb-4 px-2">
                     <button
-                        onClick={handlePrint}
+                        onClick={() => window.print()}
                         className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-6 rounded-md shadow-sm"
                     >
                         🖨️ Cetak / Simpan PDF
@@ -200,6 +296,7 @@ export default function BeritaAcaraPDF({ report }: Props) {
 
                 {/* A4 Document */}
                 <div className="w-[595px] min-h-[842px] mx-auto bg-white border border-slate-200 rounded-lg shadow-md px-10 py-8 print:shadow-none print:border-0 flex flex-col">
+
                     {/* Kop Surat */}
                     <div className="flex justify-between items-start border-b-[3px] border-slate-800 pb-3 mb-5">
                         <div className="flex items-center gap-2.5">
@@ -266,7 +363,7 @@ export default function BeritaAcaraPDF({ report }: Props) {
                         <table className="w-full border-collapse text-[10.5px]">
                             <thead>
                                 <tr>
-                                    <th className="bg-slate-100 px-2 py-1.5 border border-slate-500 font-mono text-[9px] font-bold text-left w-8 text-center">
+                                    <th className="bg-slate-100 px-2 py-1.5 border border-slate-500 font-mono text-[9px] font-bold text-center w-8">
                                         No
                                     </th>
                                     <th className="bg-slate-100 px-2 py-1.5 border border-slate-500 font-mono text-[9px] font-bold text-left">
@@ -295,43 +392,33 @@ export default function BeritaAcaraPDF({ report }: Props) {
                             "Berita Acara ini sah dan berkekuatan hukum sejak ditandatangani serta diverifikasi secara elektronik."
                         </p>
                         <div className="grid grid-cols-2 gap-4">
-                            {/* Pihak Pertama */}
-                            <div className="flex flex-col items-center gap-1.5">
-                                <div className="text-center">
-                                    <div className="font-bold text-[11px]">PIHAK PERTAMA</div>
-                                    <div className="text-[9px] text-slate-500">PT PLN (Persero) ULP Batam</div>
-                                </div>
-                                <div className="relative w-20 h-20 border border-slate-200 rounded bg-white p-1 flex items-center justify-center">
-                                    <QRCodeReal text={qrTextPln} size={68} />
-                                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-blue-800 text-white text-[7px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap font-mono">
-                                        PLN OK
-                                    </div>
-                                </div>
-                                <div className="text-center mt-1">
-                                    <div className="font-bold text-[11px] underline">HERLAN FRANSISCO</div>
-                                    <div className="text-[9px] text-slate-500">Manager Unit Layanan</div>
-                                </div>
-                            </div>
 
-                            {/* Pihak Kedua (Mitra) */}
-                            <div className="flex flex-col items-center gap-1.5">
-                                <div className="text-center">
-                                    <div className="font-bold text-[11px]">PIHAK KEDUA</div>
-                                    <div className="text-[9px] text-slate-500 uppercase">{report.nama_mitra.toUpperCase()}</div>
-                                </div>
-                                <div className="relative w-20 h-20 border border-slate-200 rounded bg-white p-1 flex items-center justify-center">
-                                    <QRCodeReal text={qrTextMitra} size={68} />
-                                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[7px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap font-mono">
-                                        {report.nama_mitra.substring(0, 8).toUpperCase()}
-                                    </div>
-                                </div>
-                                <div className="text-center mt-1">
-                                    <div className="font-bold text-[11px] underline">{report.petugas_lapangan.toUpperCase()}</div>
-                                    <div className="text-[9px] text-slate-500">Petugas Lapangan Mitra</div>
-                                </div>
-                            </div>
+                            {/* Pihak Pertama — Manajer */}
+                            <SignatureBlock
+                                title="PIHAK PERTAMA"
+                                subtitle="PT PLN (Persero) ULP Batam"
+                                name={manajerName}
+                                role="Manager Unit Layanan"
+                                qrText={qrTextManajer}
+                                signedAt={report.signed_at_manajer}
+                                badgeColor="blue"
+                            />
+
+                            {/* Pihak Kedua — Mitra */}
+                            <SignatureBlock
+                                title="PIHAK KEDUA"
+                                subtitle={report.nama_mitra}
+                                name={report.petugas_lapangan}
+                                role="Petugas Lapangan Mitra"
+                                qrText={qrTextMitra}
+                                signedAt={report.signed_at_mitra}
+                                badgeColor="violet"
+                            />
+
                         </div>
+
                     </div>
+
                 </div>
             </div>
         </>

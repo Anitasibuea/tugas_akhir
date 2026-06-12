@@ -8,6 +8,7 @@ export interface ReportDetail {
     petugas_mitra: string;
     jenis_kabel: string;
     panjang_tiang: string;
+    jumlah_kabel: string;
     latitude: number;
     longitude: number;
     deskripsi: string;

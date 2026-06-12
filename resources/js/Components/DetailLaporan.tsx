@@ -14,7 +14,7 @@ interface ReportDetail {
     tipe_tiang: string;
     jenis_kabel: string;
     panjang_tiang: string;
-    status_laporan: 'Open' | 'Pending' | 'Closed';
+    status_laporan: string;
     nama_mitra: string;
     petugas_mitra: string;
     latitude: number;
@@ -90,14 +90,8 @@ const Icons = {
     ),
 };
 
+// Replace STATUS_CONFIG with:
 const STATUS_CONFIG = {
-    Open: {
-        icon: Icons.ExclamationCircle,
-        color: 'text-red-600',
-        bgColor: 'bg-red-50',
-        borderColor: 'border-red-200',
-        label: 'Open',
-    },
     Pending: {
         icon: Icons.Clock,
         color: 'text-yellow-600',
@@ -105,12 +99,19 @@ const STATUS_CONFIG = {
         borderColor: 'border-yellow-200',
         label: 'Pending',
     },
-    Closed: {
+    Proses: {
+        icon: Icons.Clock,
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-50',
+        borderColor: 'border-blue-200',
+        label: 'Proses',
+    },
+    Selesai: {
         icon: Icons.CheckCircle,
         color: 'text-emerald-600',
         bgColor: 'bg-emerald-50',
         borderColor: 'border-emerald-200',
-        label: 'Closed',
+        label: 'Selesai',
     },
 };
 
@@ -123,9 +124,9 @@ const TIPE_TIANG_CONFIG: Record<string, string> = {
 // Helper function to get file info
 const getFileInfo = (path: string | null) => {
     if (!path) return { url: null, isPdf: false, isImage: false, fileName: null };
-    
+
     let cleanPath = path.trim();
-    
+
     // Parse JSON if needed
     try {
         const parsed = JSON.parse(cleanPath);
@@ -137,15 +138,15 @@ const getFileInfo = (path: string | null) => {
     } catch (e) {
         // Not JSON, continue
     }
-    
+
     // Build URL
     const url = cleanPath.startsWith('http') ? cleanPath : `/storage/${cleanPath.replace(/^\/?storage\//, '')}`;
-    
+
     // Get file extension and name
     const fileName = cleanPath.split('/').pop() || 'file';
     const isPdf = cleanPath.toLowerCase().endsWith('.pdf');
     const isImage = /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(cleanPath);
-    
+
     return { url, isPdf, isImage, fileName };
 };
 
@@ -231,10 +232,10 @@ export default function DetailReportModal({ isOpen, onClose, report }: DetailRep
 
     // Memoized values for performance
     const fileInfo = useMemo(() => getFileInfo(report?.foto || null), [report?.foto]);
-    
+
     const formattedDates = useMemo(() => {
         if (!report) return { tanggal: '', createdAt: '', updatedAt: '' };
-        
+
         const formatDate = (dateString: string) => {
             try {
                 const date = new Date(dateString);
@@ -247,7 +248,7 @@ export default function DetailReportModal({ isOpen, onClose, report }: DetailRep
                 return dateString;
             }
         };
-        
+
         const formatDateTime = (dateString?: string) => {
             if (!dateString) return '-';
             try {
@@ -263,7 +264,7 @@ export default function DetailReportModal({ isOpen, onClose, report }: DetailRep
                 return dateString;
             }
         };
-        
+
         return {
             tanggal: formatDate(report.tanggal),
             createdAt: formatDateTime(report.created_at),
@@ -273,7 +274,7 @@ export default function DetailReportModal({ isOpen, onClose, report }: DetailRep
 
     const handleOpenGoogleMaps = useCallback(() => {
         if (!report) return;
-        
+
         if (report.latitude && report.longitude) {
             window.open(`https://www.google.com/maps?q=${report.latitude},${report.longitude}`, '_blank');
         } else if (report.lokasi) {
@@ -288,8 +289,8 @@ export default function DetailReportModal({ isOpen, onClose, report }: DetailRep
 
     if (!report) return null;
 
-    const normalizedStatus = (report.status_laporan?.charAt(0).toUpperCase() + report.status_laporan?.slice(1).toLowerCase()) as 'Open' | 'Pending' | 'Closed';
-    const statusConfig = STATUS_CONFIG[normalizedStatus] || STATUS_CONFIG.Open;
+    const normalizedStatus = report.status_laporan as keyof typeof STATUS_CONFIG;
+    const statusConfig = STATUS_CONFIG[normalizedStatus] ?? STATUS_CONFIG.Pending;
     const StatusIcon = statusConfig.icon;
     const tipeColor = TIPE_TIANG_CONFIG[report.tipe_tiang] || 'bg-slate-100 text-slate-700';
 
@@ -366,7 +367,7 @@ export default function DetailReportModal({ isOpen, onClose, report }: DetailRep
 
                                         {/* Grid Info */}
                                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                            
+
                                             <InfoCard icon={Icons.Calendar} title="Tanggal Laporan">
                                                 <p className="mt-1 text-sm font-medium text-gray-900">
                                                     {formattedDates.tanggal}
@@ -476,7 +477,7 @@ export default function DetailReportModal({ isOpen, onClose, report }: DetailRep
                                                         Dokumentasi Foto
                                                     </h4>
                                                 </div>
-                                                <div 
+                                                <div
                                                     className="relative overflow-hidden rounded-lg border border-gray-200 bg-gray-100 cursor-pointer group"
                                                     onClick={() => setIsImageViewerOpen(true)}
                                                 >
@@ -549,14 +550,14 @@ export default function DetailReportModal({ isOpen, onClose, report }: DetailRep
                 </Dialog>
             </Transition>
 
-          {/* Image Viewer Modal */}
-    {isImageViewerOpen && fileInfo.isImage && fileInfo.url && (
-    <ImageViewer
-        imageUrl={fileInfo.url}
-        isOpen={isImageViewerOpen}
-        onClose={() => setIsImageViewerOpen(false)}
-    />
-)}
+            {/* Image Viewer Modal */}
+            {isImageViewerOpen && fileInfo.isImage && fileInfo.url && (
+                <ImageViewer
+                    imageUrl={fileInfo.url}
+                    isOpen={isImageViewerOpen}
+                    onClose={() => setIsImageViewerOpen(false)}
+                />
+            )}
         </>
     );
 }
