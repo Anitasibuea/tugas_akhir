@@ -42,6 +42,8 @@ type Report = {
     lokasi: string;
     panjang_tiang: string;
     petugas_lapangan: string;
+    awal_kontrak: string;
+    akhir_kontrak: string;
     latitude: number;
     longitude: number;
     nama_mitra: string;
@@ -64,6 +66,8 @@ type FormState = {
     lokasi: string;
     panjang_tiang: string;
     petugas_lapangan: number | "";
+    awal_kontrak: string;
+    akhir_kontrak: string;
     latitude: number | "";
     longitude: number | "";
     nama_mitra: number | "";
@@ -134,6 +138,8 @@ export default function Reports({
         lokasi: "",
         panjang_tiang: "",
         petugas_lapangan: "",
+        awal_kontrak: "",
+        akhir_kontrak: "",
         latitude: "",
         longitude: "",
         nama_mitra: "",
@@ -199,19 +205,6 @@ export default function Reports({
     function submit(e: React.FormEvent) {
         e.preventDefault();
 
-        console.log("Form data:", {
-            tanggal: form.tanggal,
-            status_laporan: form.status_laporan,
-            nama_mitra: form.nama_mitra,
-            petugas_lapangan: form.petugas_lapangan,
-            tipe_tiang: form.tipe_tiang,
-            deskripsi: form.deskripsi,
-            foto: form.foto,
-            latitude: form.latitude,
-            longitude: form.longitude,
-        });
-
-        // Validate required fields
         if (!form.tanggal || !form.status_laporan || !form.nama_mitra || !form.petugas_lapangan || !form.tipe_tiang || !form.deskripsi) {
             alert("Mohon lengkapi semua field yang diperlukan");
             return;
@@ -234,6 +227,8 @@ export default function Reports({
         formData.append("panjang_tiang", form.panjang_tiang);
         formData.append("lokasi", form.lokasi);
         formData.append("petugas_lapangan", form.petugas_lapangan.toString());
+        formData.append("awal_kontrak", form.awal_kontrak);
+        formData.append("akhir_kontrak", form.akhir_kontrak);
         formData.append("latitude", form.latitude.toString());
         formData.append("longitude", form.longitude.toString());
         formData.append("nama_mitra", form.nama_mitra.toString());
@@ -256,6 +251,8 @@ export default function Reports({
                     lokasi: "",
                     panjang_tiang: "",
                     petugas_lapangan: "",
+                    awal_kontrak: "",
+                    akhir_kontrak: "",
                     latitude: "",
                     longitude: "",
                     nama_mitra: "",
@@ -474,6 +471,34 @@ export default function Reports({
                                             <option value="Beton">Beton</option>
                                             <option value="Besi">Besi</option>
                                         </select>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700">Awal Kontrak</label>
+                                        <input
+                                            type="date"
+                                            value={form.awal_kontrak}
+                                            onChange={(e) =>
+                                                setForm({ ...form, awal_kontrak: e.target.value })
+                                            }
+                                            className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700">Akhir Kontrak</label>
+                                        <input
+                                            type="date"
+                                            value={form.akhir_kontrak}
+                                            onChange={(e) =>
+                                                setForm({ ...form, akhir_kontrak: e.target.value })
+                                            }
+                                            className="w-full mt-1 rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-black outline-none"
+                                            required
+                                        />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

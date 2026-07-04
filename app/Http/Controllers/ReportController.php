@@ -47,9 +47,13 @@ class ReportController extends Controller
         $manajerName = $report->signed_by_manajer
             ? User::find($report->signed_by_manajer)?->name ?? 'Manajer'
             : 'Manajer';
+        $mitraName = $report->signed_by_mitra
+            ? User::find($report->signed_by_mitra)?->name ?? 'Mitra'
+            : 'Mitra';
         return Inertia::render('Report/PDF', [
             'report'      => $report,
             'manajerName' => $manajerName,
+            'mitraName'   => $mitraName
         ]);
     }
 
@@ -65,6 +69,8 @@ class ReportController extends Controller
             'jumlah_kabel'     => 'required',
             'panjang_tiang'    => 'required',
             'petugas_lapangan' => 'required|exists:users,id',
+            'awal_kontrak'     => 'required|date',
+            'akhir_kontrak'    => 'required|date',
             'latitude'         => 'required|numeric',
             'longitude'        => 'required|numeric',
             'nama_mitra'       => 'required|exists:mitra,id',
@@ -118,6 +124,8 @@ class ReportController extends Controller
             'jumlah_kabel'     => 'required',
             'panjang_tiang'    => 'required',
             'petugas_lapangan' => 'required|exists:users,id',
+            'awal_kontrak'     => 'required|date',
+            'akhir_kontrak'    => 'required|date',
             'latitude'         => 'required|numeric',
             'longitude'        => 'required|numeric',
             'nama_mitra'       => 'required|exists:mitra,id',
@@ -255,9 +263,28 @@ class ReportController extends Controller
 
     public function verifyQr(string $token)
     {
-        $laporan = Laporan::where('signature_qr_mitra', $token)->firstOrFail();
+        // Check manajer token first, then mitra
+        $laporan = Laporan::where('signature_qr_manajer', $token)
+            ->orWhere('signature_qr_mitra', $token)
+            ->firstOrFail();
+
+        $isManajer = $laporan->signature_qr_manajer === $token;
+
+        $signer = $isManajer
+            ? User::find($laporan->signed_by_manajer)
+            : User::find($laporan->signed_by_mitra);
+
         return Inertia::render('Report/VerifyQr', [
-            'laporan' => $laporan->only('id', 'nama_mitra', 'tanggal'),
+            'laporan' => [
+                'id'          => $laporan->id,
+                'tanggal'     => $laporan->tanggal,
+            ],
+            'signer' => [
+                'role'      => $isManajer ? 'Manajer PLN' : 'Petugas Mitra',
+                'name'      => $signer?->name ?? '-',
+                'signed_at' => $isManajer ? $laporan->signed_at_manajer : $laporan->signed_at_mitra,
+            ],
+            'verified' => true,
         ]);
     }
 }

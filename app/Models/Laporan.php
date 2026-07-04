@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Laporan extends Model
 {
-     use HasFactory;
+    use HasFactory;
 
     // Nama tabel
     protected $table = 'report';
@@ -26,6 +26,8 @@ class Laporan extends Model
         'jenis_kabel',
         'panjang_tiang',
         'petugas_lapangan',
+        'awal_kontrak',
+        'akhir_kontrak',
         'jumlah_kabel',
         'latitude',
         'longitude',
@@ -40,22 +42,19 @@ class Laporan extends Model
         'signed_at_manajer '
     ];
 
-// Jika primary key auto increment
-public $incrementing = false;  // string IDs are not auto-increment
+    // Jika primary key auto increment
+    public $incrementing = false;  // string IDs are not auto-increment
 
-// Tipe primary key
+    // Tipe primary key
     protected $keyType = 'string';  // PLN-2025-001 is a string
     protected $casts = ['signed_at' => 'datetime'];
 
-  public function isManajerSigned(): bool
-{
-    return !is_null($this->signed_by_manajer);
+    public function isManajerSigned(): bool
+    {
+        return !is_null($this->signed_by_manajer);
+    }
+    public function isMitraSigned(): bool
+    {
+        return !is_null($this->signed_by_mitra);
+    }
 }
-public function isMitraSigned(): bool
-{
-    return !is_null($this->signed_by_mitra);
-}
-}
-
-
-

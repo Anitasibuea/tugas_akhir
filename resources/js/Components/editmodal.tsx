@@ -94,9 +94,11 @@ export default function EditReportModal({
     const [gettingLocation, setGettingLocation] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Initialize form when report changes
     useEffect(() => {
         if (report) {
+            const petugasMatch = petugasUsers.find(u => u.name === report.petugas_lapangan);
+            const mitraMatch = mitraUsers.find(m => m.nama_perusahaan === report.nama_mitra);
+
             setForm({
                 tanggal: report.tanggal,
                 deskripsi: report.deskripsi,
@@ -106,17 +108,17 @@ export default function EditReportModal({
                 jenis_kabel: report.jenis_kabel,
                 jumlah_kabel: report.jumlah_kabel,
                 panjang_tiang: report.panjang_tiang,
-                petugas_lapangan: report.petugas_lapangan,
+                petugas_lapangan: petugasMatch ? String(petugasMatch.id) : "",
                 latitude: report.latitude,
                 longitude: report.longitude,
-                nama_mitra: report.nama_mitra,
+                nama_mitra: mitraMatch ? String(mitraMatch.id) : "",
             });
 
             if (report.latitude && report.longitude) {
                 setSelected([report.latitude, report.longitude]);
             }
         }
-    }, [report]);
+    }, [report, petugasUsers, mitraUsers]);
 
     async function reverseGeocode(lat: number, lng: number) {
         try {
@@ -294,7 +296,7 @@ export default function EditReportModal({
                                             >
                                                 <option value="">Pilih Nama Mitra</option>
                                                 {mitraUsers.map((mitra) => (
-                                                    <option key={mitra.id} value={mitra.nama_perusahaan}>
+                                                    <option key={mitra.id} value={mitra.id}>
                                                         {mitra.nama_perusahaan}
                                                     </option>
                                                 ))}
@@ -316,7 +318,7 @@ export default function EditReportModal({
                                             >
                                                 <option value="">Pilih Petugas Lapangan</option>
                                                 {petugasUsers.map((user) => (
-                                                    <option key={user.id} value={user.name}>
+                                                    <option key={user.id} value={user.id}>
                                                         {user.name}
                                                     </option>
                                                 ))}

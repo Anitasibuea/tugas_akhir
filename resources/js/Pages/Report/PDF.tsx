@@ -31,7 +31,8 @@ interface Report {
 
 interface Props extends PageProps {
     report: Report;
-    manajerName: string; // ← add
+    manajerName: string;
+    mitraName: string;
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -169,7 +170,7 @@ const SignatureBlock: React.FC<SignatureBlockProps> = ({
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 
-export default function BeritaAcaraPDF({ report, manajerName }: Props) {
+export default function BeritaAcaraPDF({ report, manajerName, mitraName }: Props) {
     const date = parseTanggal(report.tanggal);
     const nomorSurat = buildNomorSurat(report.nama_mitra, report.id, date.year, date.monthIndex);
 
@@ -408,7 +409,7 @@ export default function BeritaAcaraPDF({ report, manajerName }: Props) {
                             <SignatureBlock
                                 title="PIHAK KEDUA"
                                 subtitle={report.nama_mitra}
-                                name={report.petugas_lapangan}
+                                name={mitraName}
                                 role="Petugas Lapangan Mitra"
                                 qrText={qrTextMitra}
                                 signedAt={report.signed_at_mitra}
