@@ -12,6 +12,8 @@ export interface ReportDetail {
     latitude: number;
     longitude: number;
     deskripsi: string;
+    awal_kontrak: string;
+    akhir_kontrak: string;
     created_at?: string;
     updated_at?: string;
     foto: string | null;

@@ -169,12 +169,7 @@ const CompanyCard = ({
                 {/* Actions */}
                 <div className="flex gap-2 mt-auto pt-1">
                     {/* Lihat Detail — visible to ALL roles */}
-                    <button
-                        onClick={onLihatDetail}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-semibold py-2 rounded-xl transition-colors duration-150"
-                    >
-                        Lihat Detail
-                    </button>
+                    
 
                     {/* Edit & Delete — admin only */}
                     {canEdit && (

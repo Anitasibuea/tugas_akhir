@@ -35,6 +35,9 @@ interface Report {
     jenis_kabel: string;
     latitude: number;
     longitude: number;
+    awal_kontrak: string;
+    akhir_kontrak: string;
+    nama_pengguna;
     deskripsi: string;
     created_at?: string;
     updated_at?: string;
@@ -186,6 +189,8 @@ export default function ReportPage({
         panjang_tiang: r.panjang_tiang || "",   // ← add
         jumlah_kabel: r.jumlah_kabel || "",     // ← add
         jenis_kabel: r.jenis_kabel || "",       // ← add
+        awal_kontrak: r.awal_kontrak,
+        akhir_kontrak: r.akhir_kontrak
     });
 
     return (

@@ -20,6 +20,8 @@ interface ReportDetail {
     latitude: number;
     longitude: number;
     deskripsi: string;
+    awal_kontrak: string;
+    akhir_kontrak:string;
     created_at?: string;
     updated_at?: string;
     foto: string | null;
@@ -415,6 +417,18 @@ export default function DetailReportModal({ isOpen, onClose, report }: DetailRep
                                             <InfoCard icon={Icons.User} title="Petugas Mitra">
                                                 <p className="mt-1 text-sm font-medium text-gray-900">
                                                     {report.petugas_mitra}
+                                                </p>
+                                            </InfoCard>
+
+                                            <InfoCard icon={Icons.User} title="Awal Kontrak">
+                                                <p className="mt-1 text-sm font-medium text-gray-900">
+                                                    {report.awal_kontrak}
+                                                </p>
+                                            </InfoCard>
+
+                                            <InfoCard icon={Icons.User} title="Akhir Kontrak Kontrak">
+                                                <p className="mt-1 text-sm font-medium text-gray-900">
+                                                    {report.akhir_kontrak}
                                                 </p>
                                             </InfoCard>
 

@@ -35,6 +35,7 @@ class Laporan extends Model
         'foto',
         'signed_by_mitra',
         'signed_by_manajer',
+        'nama_pengguna',
         'signature_data',
         'signature_qr_mitra',
         'signature_qr_manajer',
@@ -56,5 +57,9 @@ class Laporan extends Model
     public function isMitraSigned(): bool
     {
         return !is_null($this->signed_by_mitra);
+    }
+    public function mitra()
+    {
+        return $this->belongsTo(Mitra::class, 'nama_mitra', 'nama_perusahaan');
     }
 }

@@ -5,7 +5,8 @@ namespace App\Console\Commands;
 use App\Notifications\KontrakBerakhir;
 use Illuminate\Console\Command;
 use App\Models\Laporan;
-use App\Models\User;
+use App\Jobs\SendContractNotification;
+
 
 class CekKontrakBerakhir extends Command
 {
@@ -32,39 +33,27 @@ class CekKontrakBerakhir extends Command
         $sevenDays   = now()->addDays(7)->toDateString();
 
         // ── 1. Reminder: 7 days before ──────────────────────────
-        $reminders = Laporan::whereDate('akhir_kontrak', $sevenDays)
-            ->whereNotNull('petugas_lapangan')
-            ->whereNull('reminder_sent_at') // only if not already sent
+        $reminders = Laporan::with(['mitra.petugas'])
+            ->whereDate('akhir_kontrak', $sevenDays)
+            ->whereNotNull('nama_mitra')
+            ->whereNull('reminder_sent_at')
             ->get();
 
         foreach ($reminders as $laporan) {
-            $user = User::where('name', $laporan->petugas_lapangan)->first();
-
-            if ($user) {
-                $user->notify(new \App\Notifications\KontrakAkanBerakhir($laporan));
-                $laporan->update(['reminder_sent_at' => now()]);
-                $this->info("⚠️  Reminder terkirim ke {$user->email} untuk laporan {$laporan->id}");
-            } else {
-                $this->warn("✗ User tidak ditemukan untuk laporan {$laporan->id}");
-            }
+            SendContractNotification::dispatch($laporan, 'reminder');
+            $this->info("⚠️  Reminder queued for laporan {$laporan->id}");
         }
 
         // ── 2. Final notice: on expiry date ─────────────────────
-        $expired = Laporan::whereDate('akhir_kontrak', '<=', $today)
-            ->whereNotNull('petugas_lapangan')
-            ->whereNull('notified_at') // only if not already sent
+        $expired = Laporan::with(['mitra.petugas'])
+            ->whereDate('akhir_kontrak', '<=', $today)
+            ->whereNotNull('nama_mitra')
+            ->whereNull('notified_at')
             ->get();
 
         foreach ($expired as $laporan) {
-            $user = User::where('name', $laporan->petugas_lapangan)->first();
-
-            if ($user) {
-                $user->notify(new \App\Notifications\KontrakBerakhir($laporan));
-                $laporan->update(['notified_at' => now()]);
-                $this->info("✓ Email berakhir terkirim ke {$user->email} untuk laporan {$laporan->id}");
-            } else {
-                $this->warn("✗ User tidak ditemukan untuk laporan {$laporan->id}");
-            }
+            SendContractNotification::dispatch($laporan, 'expiry');
+            $this->info("✓ Email berakhir queued for laporan {$laporan->id}");
         }
 
         $this->info('Selesai. Reminder: ' . $reminders->count() . ' | Berakhir: ' . $expired->count());

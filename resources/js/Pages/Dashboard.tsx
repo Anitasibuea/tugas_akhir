@@ -25,13 +25,16 @@ interface Props extends PageProps {
     };
 }
 
-export default function Dashboard({ 
-    auth, 
-    stats, 
-    recentActivities, 
-    cablePerTiang, 
-    statusDistribution 
+export default function Dashboard({
+    auth,
+    stats = { totalTiang: 0, totalKabel: 0, statusWaiting: 0, statusResolved: 0 },
+    recentActivities = [],
+    cablePerTiang = [],
+    statusDistribution = { waiting: 0, resolved: 0 }
 }: Props) {
+    // Debug log
+    console.log('Dashboard rendering with props:', { auth, stats, recentActivities, cablePerTiang, statusDistribution });
+
     return (
         <AuthLayout user={auth.user}>
             <Head title="Dashboard Admin" />
@@ -154,7 +157,7 @@ export default function Dashboard({
                                         <div className="mb-2 flex items-center justify-between">
                                             <div>
                                                 <span className="inline-block rounded-full bg-yellow-500 px-2 py-1 text-xs font-semibold text-white">
-                                                    Waiting
+                                                    Proses
                                                 </span>
                                             </div>
                                             <div className="text-right">
@@ -171,7 +174,7 @@ export default function Dashboard({
                                         <div className="mb-2 flex items-center justify-between">
                                             <div>
                                                 <span className="inline-block rounded-full bg-green-500 px-2 py-1 text-xs font-semibold text-white">
-                                                    Resolved
+                                                    Selesai
                                                 </span>
                                             </div>
                                             <div className="text-right">
@@ -198,7 +201,7 @@ export default function Dashboard({
                                 <h3 className="text-base font-semibold text-gray-900">Quick Access</h3>
                                 <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                                     <Link
-                                        href="/reports/create"
+                                        href="/dashboard/report/add"
                                         className="group rounded-lg border border-gray-300 p-4 transition hover:border-indigo-500 hover:shadow-md"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-8 w-8 text-indigo-600">
@@ -209,7 +212,7 @@ export default function Dashboard({
                                     </Link>
 
                                     <Link
-                                        href="/reports"
+                                        href="/dashboard/report"
                                         className="group rounded-lg border border-gray-300 p-4 transition hover:border-indigo-500 hover:shadow-md"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-8 w-8 text-indigo-600">
@@ -220,7 +223,7 @@ export default function Dashboard({
                                     </Link>
 
                                     <Link
-                                        href="/reports/validate"
+                                        href="/dashboard/report/validate"
                                         className="group rounded-lg border border-gray-300 p-4 transition hover:border-indigo-500 hover:shadow-md"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-8 w-8 text-indigo-600">
@@ -231,7 +234,7 @@ export default function Dashboard({
                                     </Link>
 
                                     <Link
-                                        href="/mitra"
+                                        href="/dashboard/mitra"
                                         className="group rounded-lg border border-gray-300 p-4 transition hover:border-indigo-500 hover:shadow-md"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-8 w-8 text-indigo-600">
@@ -242,7 +245,7 @@ export default function Dashboard({
                                     </Link>
 
                                     <Link
-                                        href="/map"
+                                        href="/peta-lokasi"
                                         className="group rounded-lg border border-gray-300 p-4 transition hover:border-indigo-500 hover:shadow-md sm:col-span-2"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-8 w-8 text-indigo-600">

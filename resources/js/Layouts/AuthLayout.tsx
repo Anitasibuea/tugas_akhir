@@ -53,7 +53,8 @@ export default function AuthenticatedLayout({
             active: route().current("peta.lokasi"),
             icon: MapIcon,
         },
-        ...(user.role.includes("admin")
+        // Use optional chaining to safely check
+        ...(user.role?.includes("admin")
             ? [
                 {
                     label: "Tambah Pengguna",
@@ -124,7 +125,7 @@ export default function AuthenticatedLayout({
                     <div className="flex items-center gap-3">
 
                         {/* AVATAR */}
-                        <div className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-semibold">
+                        <div className="w-10 h-10 rounded-full bg-[#59BCC8] text-white flex items-center justify-center text-sm font-semibold">
                             {user.name
                                 .split(" ")
                                 .map((n) => n[0])
@@ -185,7 +186,7 @@ export default function AuthenticatedLayout({
                                     >
 
                                         {/* AVATAR */}
-                                        <div className="w-9 h-9 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-semibold">
+                                        <div className="w-9 h-9 rounded-full bg-[#59BCC8] text-white flex items-center justify-center text-sm font-semibold">
                                             {user.name
                                                 .split(" ")
                                                 .map((n) => n[0])
@@ -356,4 +357,3 @@ function UserIcon() {
         </svg>
     )
 }
-
